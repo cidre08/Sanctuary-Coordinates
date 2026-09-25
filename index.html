@@ -80,11 +80,11 @@
             </div>
             <div class="space-y-2 text-[#b8b0a6] leading-relaxed">
                 <p><strong class="text-[#e6dfd5]">📍 座標の自動入力:</strong> ゲーム内で <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">F3+C</code> を長押ししてコピーしたテキストを「座標をここにコピペ」欄に貼るだけで、XYZが自動入力されます。</p>
-                <p><strong class="text-[#e6dfd5]">⭐ お気に入り・方向:</strong> よく使う場所は⭐で最上部固定。現在地を設定すると、そこからの「距離・方位（東西南北）」がひと目で分かります。</p>
+                <p><strong class="text-[#e6dfd5]">⭐ お気に入り・タグ・カテゴリ:</strong> ⭐で最上部固定。タグやカテゴリバッジをクリックすると瞬時に絞り込みができます。</p>
                 <p><strong class="text-[#e6dfd5]">⛏️ 鉱石の適正高度(Java版):</strong> ダイヤ <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-58</code> / 鉄 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">16</code> / 銅 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">48</code> / 石炭 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">96</code> や金 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-16</code></p>
             </div>
             
-            <!-- データ管理 & URL共有エリア（読込・保存の近くに集約） -->
+            <!-- データ管理 & URL共有エリア -->
             <div class="pt-2 border-t border-[#383431] flex flex-col gap-2">
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] text-[#b8b0a6]">データ管理・URL共有</span>
@@ -125,26 +125,20 @@
                         class="w-full custom-input rounded px-2.5 py-1 text-sm font-mono">
                 </div>
 
-                <!-- 場所の名前 & カテゴリ & カラー選択 (比率 5:3:2) -->
+                <!-- 場所の名前 & カテゴリ & カラー選択 -->
                 <div>
                     <label class="block font-medium text-[#d4c5b9] mb-0.5 text-sm">場所の名前 / カテゴリ / カラー選択</label>
                     <div class="flex gap-1.5 items-center">
-                        <!-- 場所の名前 (幅: 5) -->
+                        <!-- 場所の名前 -->
                         <input type="text" id="name" required placeholder="例: 鉄鉱脈・自動炉" 
                             class="flex-[5] min-w-0 custom-input rounded px-2.5 py-1 text-[#e6dfd5] text-sm h-[34px]">
                         
-                        <!-- カテゴリ選択 (幅: 3) -->
-                        <select id="category" class="flex-[3] custom-input rounded px-2 py-1 text-xs h-[34px]">
-                            <option value="minerals">⛏️ 鉱物・金属</option>
-                            <option value="materials">🧱 原材料・ブロック</option>
-                            <option value="crops">🌾 作物・食料</option>
-                            <option value="create">⚙️ Create・自動化</option>
-                            <option value="base">🏡 拠点・ポータル</option>
-                            <option value="storage">📦 収納・施設</option>
-                            <option value="other">⭐ その他</option>
+                        <!-- カテゴリ選択 -->
+                        <select id="category" onchange="handleCategoryChange(event)" class="flex-[3] custom-input rounded px-2 py-1 text-xs h-[34px]">
+                            <!-- 動的に生成されます -->
                         </select>
                         
-                        <!-- カラー選択ボタン (幅: 2) -->
+                        <!-- カラー選択ボタン -->
                         <div class="relative flex-[2]">
                             <button type="button" id="colorPickerBtn" onclick="toggleColorMenu(event)" 
                                 class="custom-input rounded px-2 h-[34px] w-full flex items-center justify-between cursor-pointer hover:border-[#a3b19b] transition text-xs text-[#e6dfd5]" title="カラー選択">
@@ -171,7 +165,7 @@
                     </div>
                 </div>
 
-                <!-- X Y Z 座標 & ディメンション（横並び） -->
+                <!-- X Y Z 座標 & ディメンション -->
                 <div>
                     <label class="block font-medium text-[#d4c5b9] mb-0.5 text-sm">座標 & ディメンション</label>
                     <div class="grid grid-cols-4 gap-1.5">
@@ -197,7 +191,7 @@
                     </div>
                 </div>
 
-                <!-- タグ & メモ（2カラム） -->
+                <!-- タグ & メモ -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                     <div>
                         <input type="text" id="tags" placeholder="タグ (例: 拠点, 村)" 
@@ -238,15 +232,9 @@
                         <option value="nether">ネザー</option>
                         <option value="end">ジ・エンド</option>
                     </select>
+                    <!-- カテゴリフィルター -->
                     <select id="filterCategory" class="custom-input rounded px-2 py-1 text-sm text-[#e6dfd5]" onchange="renderList()">
-                        <option value="all">すべてのカテゴリ</option>
-                        <option value="minerals">⛏️ 鉱物・金属</option>
-                        <option value="materials">🧱 原材料・ブロック</option>
-                        <option value="crops">🌾 作物・食料</option>
-                        <option value="create">⚙️ Create・自動化</option>
-                        <option value="base">🏡 拠点・ポータル</option>
-                        <option value="storage">📦 収納・施設</option>
-                        <option value="other">⭐ その他</option>
+                        <!-- 動的に生成されます -->
                     </select>
                 </div>
             </div>
@@ -257,11 +245,50 @@
         </div>
     </div>
 
+    <!-- カスタムカテゴリ追加モーダル -->
+    <div id="addCategoryModal" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3">
+        <div class="custom-card p-4 rounded-xl shadow-2xl max-w-sm w-full space-y-3 border border-[#383431]">
+            <div class="flex justify-between items-center pb-2 border-b border-[#383431]">
+                <span class="font-bold text-sm text-[#e6dfd5]">🏷️ 新しいカテゴリを追加</span>
+                <button onclick="closeAddCategoryModal()" class="text-[#b8b0a6] hover:text-[#e6dfd5] text-sm">✕</button>
+            </div>
+            <div class="space-y-2 text-xs">
+                <div>
+                    <label class="block text-[#b8b0a6] mb-1">カテゴリ名</label>
+                    <input type="text" id="newCatName" placeholder="例: 村人取引所" class="w-full custom-input rounded px-2.5 py-1.5 text-sm">
+                </div>
+                <div>
+                    <label class="block text-[#b8b0a6] mb-1">アイコン絵文字 (1文字)</label>
+                    <input type="text" id="newCatIcon" value="🏷️" maxlength="2" class="w-full custom-input rounded px-2.5 py-1.5 text-sm">
+                </div>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="saveNewCategory()" class="custom-btn flex-1 font-bold py-1.5 px-3 rounded text-xs">追加する</button>
+                <button onclick="closeAddCategoryModal()" class="sub-btn py-1.5 px-3 rounded text-xs">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let coords = JSON.parse(localStorage.getItem('minecraft_coords_v9')) || [];
         let editingId = null;
         let selectedColor = 'none';
         let activeInputCardId = null;
+
+        // デフォルトカテゴリ
+        const defaultCategories = {
+            minerals: { name: '鉱物・金属', icon: '⛏️', class: 'bg-[#382f28] text-[#e6bc9c] border-[#4d4037]' },
+            materials: { name: '原材料', icon: '🧱', class: 'bg-[#33302c] text-[#d4c5b9] border-[#47423d]' },
+            crops: { name: '作物・食料', icon: '🌾', class: 'bg-[#2c362c] text-[#b5d9b5] border-[#3d4d3d]' },
+            create: { name: 'Create・自動化', icon: '⚙️', class: 'bg-[#333029] text-[#e6d0a8] border-[#4d4538]' },
+            base: { name: '拠点・ポータル', icon: '🏡', class: 'bg-[#293033] text-[#a8d0e6] border-[#38454d]' },
+            storage: { name: '収納・施設', icon: '📦', class: 'bg-[#302936] text-[#d0a8e6] border-[#45384d]' },
+            other: { name: 'その他', icon: '🔖', class: 'bg-[#2e2e2e] text-[#cccccc] border-[#424242]' }
+        };
+
+        // カスタムカテゴリの読み込み（保存されていれば結合）
+        let customCategories = JSON.parse(localStorage.getItem('minecraft_custom_categories_v9')) || {};
+        let categories = { ...defaultCategories, ...customCategories };
 
         const form = document.getElementById('coordForm');
         const coordList = document.getElementById('coordList');
@@ -275,6 +302,7 @@
         const colorMenu = document.getElementById('colorMenu');
         const colorPreview = document.getElementById('colorPickerPreview');
         const helpPanel = document.getElementById('helpPanel');
+        const addCategoryModal = document.getElementById('addCategoryModal');
 
         const dimNames = {
             overworld: { name: 'オーバーワールド', short: '通常', class: 'bg-[#2b332b] text-[#b3c9b0] border-[#3d4d3c]' },
@@ -282,18 +310,94 @@
             end: { name: 'ジ・エンド', short: 'エンド', class: 'bg-[#312b3b] text-[#c7b5d9] border-[#40384d]' }
         };
 
-        const categories = {
-            minerals: { name: '鉱物・金属', icon: '⛏️', class: 'bg-[#382f28] text-[#e6bc9c] border-[#4d4037]' },
-            materials: { name: '原材料', icon: '🧱', class: 'bg-[#33302c] text-[#d4c5b9] border-[#47423d]' },
-            crops: { name: '作物・食料', icon: '🌾', class: 'bg-[#2c362c] text-[#b5d9b5] border-[#3d4d3d]' },
-            create: { name: 'Create・自動化', icon: '⚙️', class: 'bg-[#333029] text-[#e6d0a8] border-[#4d4538]' },
-            base: { name: '拠点・ポータル', icon: '🏡', class: 'bg-[#293033] text-[#a8d0e6] border-[#38454d]' },
-            storage: { name: '収納・施設', icon: '📦', class: 'bg-[#302936] text-[#d0a8e6] border-[#45384d]' },
-            other: { name: 'その他', icon: '⭐', class: 'bg-[#2e2e2e] text-[#cccccc] border-[#424242]' }
-        };
+        // カテゴリのセレクトボックスを更新
+        function updateCategorySelects() {
+            const categorySelect = document.getElementById('category');
+            const currentVal = categorySelect.value;
 
-        // ページ読み込み時にURLハッシュから共有データを自動インポート
+            let html = '';
+            for (const [key, cat] of Object.entries(categories)) {
+                html += `<option value="${key}">${cat.icon} ${cat.name}</option>`;
+            }
+            html += `<option value="add_new">➕ 新しいカテゴリを追加...</option>`;
+            categorySelect.innerHTML = html;
+            if (categories[currentVal]) {
+                categorySelect.value = currentVal;
+            }
+
+            // フィルター用セレクトボックス
+            const currentFilterVal = filterCategory.value;
+            let filterHtml = `<option value="all">すべてのカテゴリ</option><option value="important">⭐ 重要</option>`;
+            for (const [key, cat] of Object.entries(categories)) {
+                filterHtml += `<option value="${key}">${cat.icon} ${cat.name}</option>`;
+            }
+            filterCategory.innerHTML = filterHtml;
+            if (currentFilterVal) {
+                filterCategory.value = currentFilterVal;
+            }
+        }
+
+        function handleCategoryChange(e) {
+            if (e.target.value === 'add_new') {
+                e.target.value = 'other'; // 一旦戻す
+                openAddCategoryModal();
+            }
+        }
+
+        function openAddCategoryModal() {
+            document.getElementById('newCatName').value = '';
+            document.getElementById('newCatIcon').value = '🏷️';
+            addCategoryModal.classList.remove('hidden');
+        }
+
+        function closeAddCategoryModal() {
+            addCategoryModal.classList.add('hidden');
+        }
+
+        function saveNewCategory() {
+            const name = document.getElementById('newCatName').value.trim();
+            const icon = document.getElementById('newCatIcon').value.trim() || '🏷️';
+            if (!name) {
+                alert('カテゴリ名を入力してください。');
+                return;
+            }
+
+            const key = 'custom_' + Date.now();
+            const bgClasses = [
+                'bg-[#302b36] text-[#d9b5d0] border-[#4d3846]',
+                'bg-[#2b3336] text-[#b0d2d9] border-[#384a4d]',
+                'bg-[#36322b] text-[#d9cca8] border-[#4d4438]',
+                'bg-[#362b2b] text-[#d9b5b5] border-[#4d3838]'
+            ];
+            const randomClass = bgClasses[Math.floor(Math.random() * bgClasses.length)];
+
+            customCategories[key] = { name, icon, class: randomClass };
+            categories[key] = customCategories[key];
+
+            localStorage.setItem('minecraft_custom_categories_v9', JSON.stringify(customCategories));
+            updateCategorySelects();
+            document.getElementById('category').value = key;
+            closeAddCategoryModal();
+        }
+
+        // タグをクリックしたときに検索窓にセットして絞り込み
+        function filterByTag(tag) {
+            searchQuery.value = tag;
+            renderList();
+            window.scrollTo({ top: document.getElementById('searchQuery').offsetTop - 20, behavior: 'smooth' });
+        }
+
+        // カテゴリバッジをクリックしたときにフィルターを変更して絞り込み
+        function filterByCategoryKey(catKey) {
+            filterCategory.value = catKey;
+            renderList();
+            window.scrollTo({ top: document.getElementById('searchQuery').offsetTop - 20, behavior: 'smooth' });
+        }
+
+        // ページ読み込み時にURLハッシュから共有データを自動インポート & セレクト初期化
         window.addEventListener('DOMContentLoaded', () => {
+            updateCategorySelects();
+
             if (location.hash.startsWith('#data=')) {
                 try {
                     const base64Data = location.hash.replace('#data=', '');
@@ -557,7 +661,13 @@
 
             let filtered = coords.filter(c => {
                 const matchDim = (dimFilter === 'all' || c.dimension === dimFilter);
-                const matchCat = (catFilter === 'all' || c.category === catFilter);
+                
+                let matchCat = true;
+                if (catFilter === 'important') {
+                    matchCat = c.isFavorite;
+                } else if (catFilter !== 'all') {
+                    matchCat = (c.category === catFilter);
+                }
                 
                 if (!matchDim || !matchCat) return false;
 
@@ -647,7 +757,7 @@
                 let tagsHtml = '';
                 if (c.tags && c.tags.length > 0) {
                     tagsHtml = `<div class="flex flex-wrap gap-1 mt-0.5">` + 
-                        c.tags.map(t => `<span class="text-xs bg-[#312e2c] text-[#d4c5b9] px-1.5 py-0.2 rounded border border-[#3f3a37]">#${escapeHtml(t)}</span>`).join('') + 
+                        c.tags.map(t => `<span onclick="filterByTag('${escapeHtml(t)}')" class="text-xs bg-[#312e2c] hover:bg-[#3d3936] text-[#d4c5b9] px-1.5 py-0.2 rounded border border-[#3f3a37] cursor-pointer transition" title="クリックしてこのタグで絞り込み">#${escapeHtml(t)}</span>`).join('') + 
                         `</div>`;
                 }
 
@@ -663,7 +773,7 @@
                             <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
                                 <button onclick="toggleFavorite(${c.id}, event)" class="text-sm hover:scale-110 transition" title="${favTitle}">${favIcon}</button>
                                 <span class="font-bold text-base text-[#e6dfd5]">${escapeHtml(c.name)}</span>
-                                <span class="text-xs px-2 py-0.2 rounded border ${catInfo.class}">${catInfo.icon} ${catInfo.name}</span>
+                                <span onclick="filterByCategoryKey('${c.category}')" class="text-xs px-2 py-0.2 rounded border ${catInfo.class} cursor-pointer hover:opacity-80 transition" title="クリックしてこのカテゴリで絞り込み">${catInfo.icon} ${catInfo.name}</span>
                                 <span class="text-xs px-2 py-0.2 rounded border ${dimInfo.class}">${dimInfo.name}</span>
                                 ${timeText}
                             </div>
