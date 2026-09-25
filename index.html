@@ -80,26 +80,38 @@
             </div>
             <div class="space-y-2 text-[#b8b0a6] leading-relaxed">
                 <p><strong class="text-[#e6dfd5]">📍 座標の自動入力:</strong> ゲーム内で <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">F3+C</code> を長押ししてコピーしたテキストを「座標をここにコピペ」欄に貼るだけで、XYZが自動入力されます。</p>
-                <p><strong class="text-[#e6dfd5]">⭐ お気に入り・タグ・カテゴリ:</strong> ⭐で最上部固定。タグやカテゴリバッジをクリックすると瞬時に絞り込みができます。</p>
-                <p><strong class="text-[#e6dfd5]">⛏️ 鉱石の適正高度(Java版):</strong> ダイヤ <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-58</code> / 鉄 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">16</code> / 銅 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">48</code> / 石炭 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">96</code> や金 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-16</code></p>
+                <p><strong class="text-[#e6dfd5]">💾 自動保存と3世代ログ:</strong> 「フォルダを選択」でPC上のフォルダを指定すると、データ変更時に自動で上書き保存され、直近3つ分のバックアップログも自動で残ります。</p>
+                <p><strong class="text-[#e6dfd5]">⛏️ 鉱石の適正高度(Java版):</strong> ダイヤ <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-58</code> / 鉄 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">16</code> / 銅 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">48</code> / 石炭 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">96</code> / 金 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-16</code></p>
             </div>
             
-            <!-- データ管理 & カテゴリ管理 & URL共有エリア -->
+            <!-- データ管理 & カテゴリ管理 & フォルダ選択エリア -->
             <div class="pt-2 border-t border-[#383431] flex flex-col gap-2">
+                
+                <!-- フォルダ選択バッジ & ボタン -->
+                <div class="flex items-center justify-between bg-[#1b1918] p-2 rounded-lg border border-[#383431]">
+                    <div class="flex items-center gap-1.5 overflow-hidden pr-2">
+                        <span class="text-xs shrink-0">📂</span>
+                        <span id="folderStatusText" class="text-xs text-[#b8b0a6] truncate font-mono">保存先フォルダ: 未選択</span>
+                    </div>
+                    <button onclick="selectTargetFolder()" class="custom-btn text-xs px-2.5 py-1 rounded shadow-sm font-bold shrink-0">
+                        フォルダを選択
+                    </button>
+                </div>
+
                 <div class="flex items-center justify-between">
                     <button onclick="openCategoryManager()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1 text-[#d4c5b9]">
-                        <span>🏷️</span> カスタムカテゴリ管理
+                        <span>🏷️</span> カテゴリ管理
                     </button>
                     <button onclick="exportShareUrl()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1 text-[#a8d0e6]">
-                        <span>🔗</span> 共有用URLを作成
+                        <span>🔗</span> 共有用URL
                     </button>
                 </div>
                 <div class="flex items-center gap-1.5 justify-end">
                     <button onclick="exportData()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1">
-                        <span>💾</span> データを保存
+                        <span>💾</span> 手動バックアップ保存
                     </button>
                     <button onclick="document.getElementById('importFile').click()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1">
-                        <span>📂</span> ファイル読込
+                        <span>📂</span> 読込
                     </button>
                     <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
                 </div>
@@ -293,6 +305,7 @@
         let editingId = null;
         let selectedColor = 'none';
         let activeInputCardId = null;
+        let targetDirectoryHandle = null; // フォルダハンドルの保持
 
         // デフォルトカテゴリ
         const defaultCategories = {
@@ -329,6 +342,84 @@
             nether: { name: 'ネザー', short: 'ネザー', class: 'bg-[#382b2b] text-[#d4abab] border-[#4d3c3c]' },
             end: { name: 'ジ・エンド', short: 'エンド', class: 'bg-[#312b3b] text-[#c7b5d9] border-[#40384d]' }
         };
+
+        // --- フォルダ選択 & 自動保存 (3世代ログ付き) 機能 ---
+        async function selectTargetFolder() {
+            try {
+                if (!window.showDirectoryPicker) {
+                    alert('お使いのブラウザはフォルダの直接指定（File System Access API）に対応していません。Google Chrome または Microsoft Edge をご利用ください。');
+                    return;
+                }
+                targetDirectoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                
+                const statusText = document.getElementById('folderStatusText');
+                statusText.textContent = '保存先: ' + targetDirectoryHandle.name;
+                statusText.className = 'text-xs text-[#a8d0e6] truncate font-bold font-mono';
+                
+                alert(`フォルダ「${targetDirectoryHandle.name}」を保存先に指定しました！\n今後は座標を追加・編集・削除するたびに、このフォルダに自動上書き保存され、最新の3世代ログも自動的に管理されます。`);
+                
+                // 選択直後に現在のデータを保存してみる
+                await autoSaveToFolder();
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error(err);
+                    alert('フォルダの選択に失敗しました。');
+                }
+            }
+        }
+
+        async function autoSaveToFolder() {
+            if (!targetDirectoryHandle) return;
+
+            try {
+                // 権限の確認・要求
+                const options = { mode: 'readwrite' };
+                if ((await targetDirectoryHandle.queryPermission(options)) !== 'granted') {
+                    if ((await targetDirectoryHandle.requestPermission(options)) !== 'granted') {
+                        return;
+                    }
+                }
+
+                const jsonData = JSON.stringify(coords, null, 2);
+
+                // 1. メインファイル上書き保存 (minecraft_coords.json)
+                const mainFileHandle = await targetDirectoryHandle.getFileHandle('minecraft_coords.json', { create: true });
+                const writableMain = await mainFileHandle.createWritable();
+                await writableMain.write(jsonData);
+                await writableMain.close();
+
+                // 2. 3世代ログの管理 (backup_YYYYMMDD_HHMMSS.json)
+                const now = new Date();
+                const pad = (n) => String(n).padStart(2, '0');
+                const timestamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                const backupFileName = `backup_${timestamp}.json`;
+
+                const backupFileHandle = await targetDirectoryHandle.getFileHandle(backupFileName, { create: true });
+                const writableBackup = await backupFileHandle.createWritable();
+                await writableBackup.write(jsonData);
+                await writableBackup.close();
+
+                // フォルダ内の backup_*.json を列挙して、最新3つ以外を削除する
+                const backupEntries = [];
+                for await (const [name, handle] of targetDirectoryHandle.entries()) {
+                    if (name.startsWith('backup_') && name.endsWith('.json')) {
+                        backupEntries.push(name);
+                    }
+                }
+
+                // 降順ソート（新しいものが上）
+                backupEntries.sort().reverse();
+
+                // 4番目以降の古いバックアップを削除
+                if (backupEntries.length > 3) {
+                    for (let i = 3; i < backupEntries.length; i++) {
+                        await targetDirectoryHandle.removeEntry(backupEntries[i]);
+                    }
+                }
+            } catch (err) {
+                console.error('自動保存エラー:', err);
+            }
+        }
 
         function updateCategorySelects() {
             const categorySelect = document.getElementById('category');
@@ -398,7 +489,6 @@
             closeAddCategoryModal();
         }
 
-        // --- カテゴリ管理機能 ---
         function openCategoryManager() {
             renderCustomCategoryList();
             categoryManagerModal.classList.remove('hidden');
@@ -459,14 +549,13 @@
         function deleteCustomCategory(key) {
             const cat = customCategories[key];
             if (confirm(`「${cat.name}」を削除してもよろしいですか？\n※このカテゴリを設定していた場所は「その他」に移動します。`)) {
-                // このカテゴリを使っている座標を 'other' に変更
                 coords = coords.map(c => {
                     if (c.category === key) {
                         return { ...c, category: 'other' };
                     }
                     return c;
                 });
-                localStorage.setItem('minecraft_coords_v9', JSON.stringify(coords));
+                saveAndRender();
 
                 delete customCategories[key];
                 delete categories[key];
@@ -500,7 +589,7 @@
                     if (Array.isArray(imported)) {
                         if (confirm('共有された座標データを読み込みますか？')) {
                             coords = imported;
-                            localStorage.setItem('minecraft_coords_v9', JSON.stringify(coords));
+                            saveAndRender();
                             history.replaceState(null, null, window.location.pathname);
                             alert('共有データを正常に読み込みました！');
                         }
@@ -741,6 +830,7 @@
         function saveAndRender() {
             localStorage.setItem('minecraft_coords_v9', JSON.stringify(coords));
             renderList();
+            autoSaveToFolder(); // 自動上書き＆3世代ログ保存を実行
         }
 
         function renderList() {
