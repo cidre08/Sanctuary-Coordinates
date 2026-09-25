@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>マイクラ座標メモ帳</title>
 
-  <link rel="apple-touch-icon" href="./icon.png">
-  <link rel="icon" type="image/png" href="./icon.png">
+    <link rel="apple-touch-icon" href="./icon.png">
+    <link rel="icon" type="image/png" href="./icon.png">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             background-color: #1b1918;
-            color: #f0ebe4;
+            color: #e6dfd5;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         .custom-card {
@@ -23,7 +23,7 @@
         .custom-input {
             background-color: #1b1918;
             border: 1px solid #383431;
-            color: #f0ebe4;
+            color: #e6dfd5;
         }
         .custom-input:focus {
             border-color: #a3b19b;
@@ -48,137 +48,173 @@
         }
         .cancel-btn {
             background-color: #443e3b;
-            color: #f0ebe4;
+            color: #e6dfd5;
         }
         .cancel-btn:hover {
             background-color: #574f4b;
         }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
-    <div class="max-w-3xl mx-auto">
-        <header class="mb-6 text-center">
-            <h1 class="text-3xl font-bold text-[#d4c5b9] mb-1">🌿 Sanctuary Coordinates</h1>
-            <p class="text-[#a39b94] text-sm mb-4">Java版マインクラフト 座標管理メモ</p>
+<body class="min-h-screen p-2.5 md:p-3 text-base">
+    <div class="max-w-xl mx-auto">
+        <!-- ヘッダー -->
+        <header class="mb-2 relative flex items-center justify-center">
+            <div class="text-center">
+                <h1 class="text-xl font-bold text-[#d4c5b9] mb-0.5">🌿 Sanctuary Coordinates</h1>
+                <p class="text-[#b8b0a6] text-sm">Java版マインクラフト 座標管理メモ</p>
+            </div>
             
-            <!-- バックアップ・インポートボタン -->
-            <div class="flex justify-center gap-2">
-                <button onclick="exportData()" class="sub-btn text-xs px-3 py-1.5 rounded-lg flex items-center gap-1">
-                    <span>💾</span> バックアップ保存
+            <!-- 右上の使い方ボタン -->
+            <div class="absolute right-0 top-1">
+                <button onclick="toggleHelpMenu()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1 border border-[#383431]">
+                    <span>💡</span> 使い方
                 </button>
-                <button onclick="document.getElementById('importFile').click()" class="sub-btn text-xs px-3 py-1.5 rounded-lg flex items-center gap-1">
-                    <span>📂</span> データを読込
-                </button>
-                <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
             </div>
         </header>
 
-        <!-- 現在地設定（距離計算用） -->
-        <div class="custom-card p-4 rounded-xl mb-6 flex flex-col md:flex-row items-center justify-between gap-3 text-sm">
-            <div class="flex items-center gap-2 text-[#d4c5b9]">
-                <span>📍</span>
-                <span class="font-medium">距離計算用の現在地設定:</span>
+        <!-- 使い方 & データ・共有パネル -->
+        <div id="helpPanel" class="hidden custom-card p-3 rounded-xl shadow-lg mb-2.5 text-xs text-[#d4c5b9] space-y-2.5 border border-[#383431]">
+            <div class="flex justify-between items-center pb-1.5 border-b border-[#383431]">
+                <span class="font-bold text-sm text-[#e6dfd5] flex items-center gap-1"><span>📖</span> このツールの使い方 & 鉱石高度</span>
+                <button onclick="toggleHelpMenu()" class="text-[#b8b0a6] hover:text-[#e6dfd5] px-1 font-medium">✕ 閉じる</button>
             </div>
-            <div class="flex items-center gap-2 font-mono">
-                <div class="flex items-center gap-1">
-                    <span class="text-xs text-[#a39b94]">X:</span>
-                    <input type="number" id="currentX" placeholder="0" oninput="updateDistances()" class="custom-input w-20 px-2 py-1 rounded text-xs">
+            <div class="space-y-2 text-[#b8b0a6] leading-relaxed">
+                <p><strong class="text-[#e6dfd5]">📍 座標の自動入力:</strong> ゲーム内で <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">F3+C</code> を長押ししてコピーしたテキストを「座標をここにコピペ」欄に貼るだけで、XYZが自動入力されます。</p>
+                <p><strong class="text-[#e6dfd5]">⭐ お気に入り・方向:</strong> よく使う場所は⭐で最上部固定。現在地を設定すると、そこからの「距離・方位（東西南北）」がひと目で分かります。</p>
+                <p><strong class="text-[#e6dfd5]">⛏️ 鉱石の適正高度(Java版):</strong> ダイヤ <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-58</code> / 鉄 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">16</code> / 銅 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">48</code> / 石炭 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">96</code> や金 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-16</code></p>
+            </div>
+            
+            <!-- データ管理 & URL共有エリア（読込・保存の近くに集約） -->
+            <div class="pt-2 border-t border-[#383431] flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] text-[#b8b0a6]">データ管理・URL共有</span>
+                    <button onclick="exportShareUrl()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1 text-[#a8d0e6]">
+                        <span>🔗</span> 共有用URLを作成
+                    </button>
                 </div>
-                <div class="flex items-center gap-1">
-                    <span class="text-xs text-[#a39b94]">Z:</span>
-                    <input type="number" id="currentZ" placeholder="0" oninput="updateDistances()" class="custom-input w-20 px-2 py-1 rounded text-xs">
+                <div class="flex items-center gap-1.5 justify-end">
+                    <button onclick="exportData()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1">
+                        <span>💾</span> データを保存
+                    </button>
+                    <button onclick="document.getElementById('importFile').click()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1">
+                        <span>📂</span> ファイル読込
+                    </button>
+                    <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
                 </div>
-                <button onclick="clearCurrentPos()" class="sub-btn text-xs px-2 py-1 rounded">クリア</button>
             </div>
         </div>
 
+        <!-- 隠し保持用（計算用） -->
+        <input type="hidden" id="currentX">
+        <input type="hidden" id="currentZ">
+
         <!-- 入力・編集フォーム -->
-        <div class="custom-card p-6 rounded-2xl shadow-xl mb-8">
-            <h2 id="formTitle" class="text-xl font-semibold mb-4 text-[#d4c5b9] flex items-center gap-2">
+        <div class="custom-card p-2.5 rounded-xl shadow-lg mb-2.5">
+            <h2 id="formTitle" class="text-sm font-bold mb-1.5 text-[#d4c5b9] flex items-center gap-1">
                 <span>📍</span> 新しい場所を記録する
             </h2>
-            <form id="coordForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form id="coordForm" class="space-y-2 text-sm">
                 
                 <!-- 座標一括ペースト機能 ＆ ヒント -->
-                <div class="md:col-span-2 bg-[#1b1918] p-3.5 rounded-xl border border-[#383431]">
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="block text-xs font-medium text-[#a39b94]">✨ 座標をここにコピペ（自動でXYZに振り分けられます）</label>
-                        <span class="text-[11px] text-[#a39b94]/70 bg-[#262321] px-2 py-0.5 rounded border border-[#383431]">💡 F3 + C を3秒長押しでコピー可</span>
+                <div class="bg-[#1b1918] p-1.5 rounded-lg border border-[#383431]">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <label class="font-medium text-[#b8b0a6] text-xs">✨ 座標をここにコピペ（自動でXYZに振り分け）</label>
+                        <span class="text-[11px] text-[#b8b0a6]/70 bg-[#262321] px-1.5 py-0.2 rounded border border-[#383431]">F3+C長押し可</span>
                     </div>
-                    <input type="text" id="pasteCoord" placeholder="例: /tp 100 64 -200 または 100 64 -200" 
-                        class="w-full custom-input rounded-lg px-3 py-2 text-sm font-mono">
+                    <input type="text" id="pasteCoord" placeholder="例: /tp 100 64 -200" 
+                        class="w-full custom-input rounded px-2.5 py-1 text-sm font-mono">
                 </div>
 
+                <!-- 場所の名前 & カテゴリ & カラー選択 (比率 5:3:2) -->
                 <div>
-                    <label class="block text-sm font-medium text-[#d4c5b9] mb-1">絵文字 & 場所の名前</label>
-                    <div class="flex gap-2">
-                        <select id="emoji" class="custom-input rounded-lg px-2 py-2 text-lg">
-                            <option value="🏡">🏡</option>
-                            <option value="☕">☕</option>
-                            <option value="🍞">🍞</option>
-                            <option value="🌷">🌷</option>
-                            <option value="🍯">🍯</option>
-                            <option value="🌙">🌙</option>
-                            <option value="🕯️">🕯️</option>
-                            <option value="🗝️">🗝️</option>
-                            <option value="🌋">🌋</option>
-                            <option value="🛡️">🛡️</option>
-                            <option value="🏰">🏰</option>
-                            <option value="💀">💀</option>
-                            <option value="💎">💎</option>
-                            <option value="🌾">🌾</option>
-                            <option value="⛏️">⛏️</option>
-                            <option value="⭐">⭐</option>
+                    <label class="block font-medium text-[#d4c5b9] mb-0.5 text-sm">場所の名前 / カテゴリ / カラー選択</label>
+                    <div class="flex gap-1.5 items-center">
+                        <!-- 場所の名前 (幅: 5) -->
+                        <input type="text" id="name" required placeholder="例: 鉄鉱脈・自動炉" 
+                            class="flex-[5] min-w-0 custom-input rounded px-2.5 py-1 text-[#e6dfd5] text-sm h-[34px]">
+                        
+                        <!-- カテゴリ選択 (幅: 3) -->
+                        <select id="category" class="flex-[3] custom-input rounded px-2 py-1 text-xs h-[34px]">
+                            <option value="minerals">⛏️ 鉱物・金属</option>
+                            <option value="materials">🧱 原材料・ブロック</option>
+                            <option value="crops">🌾 作物・食料</option>
+                            <option value="create">⚙️ Create・自動化</option>
+                            <option value="base">🏡 拠点・ポータル</option>
+                            <option value="storage">📦 収納・施設</option>
+                            <option value="other">⭐ その他</option>
                         </select>
-                        <input type="text" id="name" required placeholder="例: メイン拠点" 
-                            class="w-full custom-input rounded-lg px-3 py-2 text-white">
+                        
+                        <!-- カラー選択ボタン (幅: 2) -->
+                        <div class="relative flex-[2]">
+                            <button type="button" id="colorPickerBtn" onclick="toggleColorMenu(event)" 
+                                class="custom-input rounded px-2 h-[34px] w-full flex items-center justify-between cursor-pointer hover:border-[#a3b19b] transition text-xs text-[#e6dfd5]" title="カラー選択">
+                                <span class="truncate">カラー選択</span>
+                                <div id="colorPickerPreview" class="w-3.5 h-3.5 rounded-sm border border-[#555] shrink-0 ml-1" style="background-color: transparent;"></div>
+                            </button>
+                            
+                            <!-- カラーパレットメニュー -->
+                            <div id="colorMenu" class="hidden absolute right-0 mt-1 z-50 bg-[#262321] border border-[#383431] rounded-lg shadow-xl p-1.5 space-y-1 w-24">
+                                <div class="text-[11px] text-[#b8b0a6] text-center font-bold pb-0.5 border-b border-[#383431]">カラー選択</div>
+                                <div onclick="selectColor('none')" class="h-5 rounded cursor-pointer flex items-center justify-center text-xs text-[#b8b0a6] bg-[#1b1918] hover:bg-[#312e2c] border border-[#383431]">なし</div>
+                                <div onclick="selectColor('#b86542')" class="h-4 rounded cursor-pointer hover:opacity-85 transition" style="background-color: #b86542;" title="テラコッタ赤"></div>
+                                <div onclick="selectColor('#9c4442')" class="h-4 rounded cursor-pointer hover:opacity-85 transition" style="background-color: #9c4442;" title="くすみレッド"></div>
+                                <div onclick="selectColor('#d4a037')" class="h-4 rounded cursor-pointer hover:opacity-85 transition" style="background-color: #d4a037;" title="マスタード"></div>
+                                <div onclick="selectColor('#728a53')" class="h-4 rounded cursor-pointer hover:opacity-85 transition" style="background-color: #728a53;" title="セージ緑"></div>
+                                <div onclick="selectColor('#528b82')" class="h-4 rounded cursor-pointer hover:opacity-85 transition" style="background-color: #528b82;" title="ターコイズ"></div>
+                                <div onclick="selectColor('#3d6285')" class="h-4 rounded cursor-pointer hover:opacity-85 transition" style="background-color: #3d6285;" title="ディープブルー"></div>
+                                <div onclick="selectColor('#8f6b8a')" class="h-4 rounded cursor-pointer hover:opacity-85 transition" style="background-color: #8f6b8a;" title="モーヴ紫"></div>
+                                <div onclick="selectColor('#c46d84')" class="h-4 rounded cursor-pointer hover:opacity-85 transition" style="background-color: #c46d84;" title="ローズピンク"></div>
+                                <div onclick="selectColor('#8a624a')" class="h-4 rounded cursor-pointer hover:opacity-85 transition" style="background-color: #8a624a;" title="ウォームブラウン"></div>
+                                <div onclick="selectColor('#3e444a')" class="h-4 rounded cursor-pointer hover:opacity-85 transition" style="background-color: #3e444a;" title="ダークチャコール"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
+                <!-- X Y Z 座標 & ディメンション（横並び） -->
                 <div>
-                    <label class="block text-sm font-medium text-[#d4c5b9] mb-1">ディメンション</label>
-                    <select id="dimension" class="custom-input w-full rounded-lg px-2.5 py-2">
-                        <option value="overworld">オーバーワールド (通常世界)</option>
-                        <option value="nether">ネザー</option>
-                        <option value="end">ジ・エンド</option>
-                    </select>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2 md:col-span-2">
-                    <div>
-                        <label class="block text-xs font-medium text-[#a39b94] mb-1">X 座標</label>
-                        <input type="number" id="x" required placeholder="0" 
-                            class="w-full custom-input rounded-lg px-3 py-2 font-mono">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-[#a39b94] mb-1">Y 座標</label>
-                        <input type="number" id="y" required placeholder="64" 
-                            class="w-full custom-input rounded-lg px-3 py-2 font-mono">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-[#a39b94] mb-1">Z 座標</label>
-                        <input type="number" id="z" required placeholder="0" 
-                            class="w-full custom-input rounded-lg px-3 py-2 font-mono">
+                    <label class="block font-medium text-[#d4c5b9] mb-0.5 text-sm">座標 & ディメンション</label>
+                    <div class="grid grid-cols-4 gap-1.5">
+                        <div>
+                            <input type="number" id="x" required placeholder="X" 
+                                class="w-full custom-input rounded px-2.5 py-1 font-mono text-sm font-semibold">
+                        </div>
+                        <div>
+                            <input type="number" id="y" required placeholder="Y" 
+                                class="w-full custom-input rounded px-2.5 py-1 font-mono text-sm font-semibold">
+                        </div>
+                        <div>
+                            <input type="number" id="z" required placeholder="Z" 
+                                class="w-full custom-input rounded px-2.5 py-1 font-mono text-sm font-semibold">
+                        </div>
+                        <div>
+                            <select id="dimension" class="custom-input w-full rounded px-1.5 py-1 text-sm h-[34px]">
+                                <option value="overworld">通常</option>
+                                <option value="nether">ネザー</option>
+                                <option value="end">エンド</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-[#d4c5b9] mb-1">タグ (カンマ区切り)</label>
-                    <input type="text" id="tags" placeholder="例: 拠点, 村, 司書" 
-                        class="w-full custom-input rounded-lg px-3 py-2 text-sm">
+                <!-- タグ & メモ（2カラム） -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                    <div>
+                        <input type="text" id="tags" placeholder="タグ (例: 拠点, 村)" 
+                            class="w-full custom-input rounded px-2.5 py-1 text-sm">
+                    </div>
+                    <div>
+                        <input type="text" id="memo" placeholder="メモ (任意)" 
+                            class="w-full custom-input rounded px-2.5 py-1 text-sm">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-[#d4c5b9] mb-1">メモ (任意)</label>
-                    <input type="text" id="memo" placeholder="例: 安全ルート確保済み" 
-                        class="w-full custom-input rounded-lg px-3 py-2 text-sm">
-                </div>
-
-                <div class="md:col-span-2 flex gap-2">
-                    <button type="submit" id="submitBtn" class="custom-btn flex-1 font-bold py-2.5 px-4 rounded-xl shadow-md">
+                <!-- ボタン -->
+                <div class="flex gap-1.5 pt-0.5">
+                    <button type="submit" id="submitBtn" class="custom-btn flex-1 font-bold py-1.5 px-3 rounded shadow text-sm">
                         リストに追加する
                     </button>
-                    <button type="button" id="cancelEditBtn" class="cancel-btn px-4 py-2.5 rounded-xl text-sm hidden" onclick="cancelEdit()">
+                    <button type="button" id="cancelEditBtn" class="cancel-btn px-3 py-1.5 rounded text-sm hidden" onclick="cancelEdit()">
                         キャンセル
                     </button>
                 </div>
@@ -187,40 +223,122 @@
 
         <!-- 一覧表示セクション -->
         <div>
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
-                <h2 class="text-xl font-semibold text-[#d4c5b9]">記録した座標一覧</h2>
-                <div class="flex gap-2 w-full md:w-auto">
-                    <select id="filterDim" class="custom-input rounded-lg px-3 py-1.5 text-sm text-[#f0ebe4] flex-1 md:flex-initial">
+            <div class="flex justify-between items-center mb-1">
+                <h2 class="text-sm font-bold text-[#d4c5b9]">記録した座標一覧</h2>
+            </div>
+            
+            <!-- 検索 & フィルターバー -->
+            <div class="space-y-1.5 mb-2">
+                <input type="text" id="searchQuery" placeholder="🔍 名前・タグ・メモで検索..." oninput="renderList()" 
+                    class="w-full custom-input rounded px-2.5 py-1 text-sm">
+                <div class="grid grid-cols-2 gap-1.5">
+                    <select id="filterDim" class="custom-input rounded px-2 py-1 text-sm text-[#e6dfd5]" onchange="renderList()">
                         <option value="all">すべてのディメンション</option>
                         <option value="overworld">オーバーワールド</option>
                         <option value="nether">ネザー</option>
                         <option value="end">ジ・エンド</option>
                     </select>
+                    <select id="filterCategory" class="custom-input rounded px-2 py-1 text-sm text-[#e6dfd5]" onchange="renderList()">
+                        <option value="all">すべてのカテゴリ</option>
+                        <option value="minerals">⛏️ 鉱物・金属</option>
+                        <option value="materials">🧱 原材料・ブロック</option>
+                        <option value="crops">🌾 作物・食料</option>
+                        <option value="create">⚙️ Create・自動化</option>
+                        <option value="base">🏡 拠点・ポータル</option>
+                        <option value="storage">📦 収納・施設</option>
+                        <option value="other">⭐ その他</option>
+                    </select>
                 </div>
             </div>
-            <div id="coordList" class="space-y-3">
+
+            <div id="coordList" class="space-y-1 text-sm">
                 <!-- JavaScriptでここにリストが挿入されます -->
             </div>
         </div>
     </div>
 
     <script>
-        let coords = JSON.parse(localStorage.getItem('minecraft_coords_v5')) || [];
+        let coords = JSON.parse(localStorage.getItem('minecraft_coords_v9')) || [];
         let editingId = null;
+        let selectedColor = 'none';
+        let activeInputCardId = null;
 
         const form = document.getElementById('coordForm');
         const coordList = document.getElementById('coordList');
         const filterDim = document.getElementById('filterDim');
+        const filterCategory = document.getElementById('filterCategory');
+        const searchQuery = document.getElementById('searchQuery');
         const pasteInput = document.getElementById('pasteCoord');
         const formTitle = document.getElementById('formTitle');
         const submitBtn = document.getElementById('submitBtn');
         const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const colorMenu = document.getElementById('colorMenu');
+        const colorPreview = document.getElementById('colorPickerPreview');
+        const helpPanel = document.getElementById('helpPanel');
 
         const dimNames = {
-            overworld: { name: 'オーバーワールド', class: 'bg-[#313831] text-[#b3c9b0] border-[#424d41]' },
-            nether: { name: 'ネザー', class: 'bg-[#403030] text-[#d4abab] border-[#594242]' },
-            end: { name: 'ジ・エンド', class: 'bg-[#363040] text-[#c7b5d9] border-[#4a4159]' }
+            overworld: { name: 'オーバーワールド', short: '通常', class: 'bg-[#2b332b] text-[#b3c9b0] border-[#3d4d3c]' },
+            nether: { name: 'ネザー', short: 'ネザー', class: 'bg-[#382b2b] text-[#d4abab] border-[#4d3c3c]' },
+            end: { name: 'ジ・エンド', short: 'エンド', class: 'bg-[#312b3b] text-[#c7b5d9] border-[#40384d]' }
         };
+
+        const categories = {
+            minerals: { name: '鉱物・金属', icon: '⛏️', class: 'bg-[#382f28] text-[#e6bc9c] border-[#4d4037]' },
+            materials: { name: '原材料', icon: '🧱', class: 'bg-[#33302c] text-[#d4c5b9] border-[#47423d]' },
+            crops: { name: '作物・食料', icon: '🌾', class: 'bg-[#2c362c] text-[#b5d9b5] border-[#3d4d3d]' },
+            create: { name: 'Create・自動化', icon: '⚙️', class: 'bg-[#333029] text-[#e6d0a8] border-[#4d4538]' },
+            base: { name: '拠点・ポータル', icon: '🏡', class: 'bg-[#293033] text-[#a8d0e6] border-[#38454d]' },
+            storage: { name: '収納・施設', icon: '📦', class: 'bg-[#302936] text-[#d0a8e6] border-[#45384d]' },
+            other: { name: 'その他', icon: '⭐', class: 'bg-[#2e2e2e] text-[#cccccc] border-[#424242]' }
+        };
+
+        // ページ読み込み時にURLハッシュから共有データを自動インポート
+        window.addEventListener('DOMContentLoaded', () => {
+            if (location.hash.startsWith('#data=')) {
+                try {
+                    const base64Data = location.hash.replace('#data=', '');
+                    const jsonStr = decodeURIComponent(escape(atob(base64Data)));
+                    const imported = JSON.parse(jsonStr);
+                    if (Array.isArray(imported)) {
+                        if (confirm('共有された座標データを読み込みますか？')) {
+                            coords = imported;
+                            localStorage.setItem('minecraft_coords_v9', JSON.stringify(coords));
+                            history.replaceState(null, null, window.location.pathname);
+                            alert('共有データを正常に読み込みました！');
+                        }
+                    }
+                } catch(e) {
+                    console.error(e);
+                }
+            }
+        });
+
+        function toggleHelpMenu() {
+            helpPanel.classList.toggle('hidden');
+        }
+
+        function toggleColorMenu(e) {
+            e.stopPropagation();
+            colorMenu.classList.toggle('hidden');
+        }
+
+        function selectColor(color) {
+            selectedColor = color;
+            if (color === 'none') {
+                colorPreview.style.backgroundColor = 'transparent';
+                colorPreview.style.border = '1px dashed #555';
+            } else {
+                colorPreview.style.backgroundColor = color;
+                colorPreview.style.border = '1px solid #4a4542';
+            }
+            colorMenu.classList.add('hidden');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!colorMenu.contains(e.target) && !document.getElementById('colorPickerBtn').contains(e.target)) {
+                colorMenu.classList.add('hidden');
+            }
+        });
 
         function formatDateTime(isoString) {
             if (!isoString) return '';
@@ -243,10 +361,59 @@
             }
         });
 
+        function toggleFavorite(id, e) {
+            e.stopPropagation();
+            coords = coords.map(c => {
+                if (c.id === id) {
+                    return { ...c, isFavorite: !c.isFavorite };
+                }
+                return c;
+            });
+            saveAndRender();
+        }
+
+        function toggleCurrentInputBox(id) {
+            if (activeInputCardId === id) {
+                activeInputCardId = null;
+            } else {
+                activeInputCardId = id;
+            }
+            renderList();
+        }
+
+        function handleCurrentPaste(e) {
+            const text = e.target.value;
+            const matches = text.match(/-?\d+/g);
+            if (matches && matches.length >= 3) {
+                const xInput = document.getElementById('inlineCurrentX');
+                const zInput = document.getElementById('inlineCurrentZ');
+                if (xInput) xInput.value = matches[0];
+                if (zInput) zInput.value = matches[2];
+            }
+        }
+
+        function applyCurrentPos(id) {
+            const xInput = document.getElementById('inlineCurrentX');
+            const zInput = document.getElementById('inlineCurrentZ');
+            if (xInput && zInput) {
+                const xVal = xInput.value;
+                const zVal = zInput.value;
+                if (xVal !== '' && zVal !== '') {
+                    document.getElementById('currentX').value = xVal;
+                    document.getElementById('currentZ').value = zVal;
+                    activeInputCardId = null;
+                    renderList();
+                } else {
+                    alert('X座標とZ座標を入力してください。');
+                }
+            }
+        }
+
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            const emoji = document.getElementById('emoji').value;
             const name = document.getElementById('name').value;
+            const category = document.getElementById('category').value;
+            const cardColor = selectedColor;
             const dimension = document.getElementById('dimension').value;
             const x = parseInt(document.getElementById('x').value);
             const y = parseInt(document.getElementById('y').value);
@@ -258,7 +425,7 @@
             if (editingId !== null) {
                 coords = coords.map(c => {
                     if (c.id === editingId) {
-                        return { ...c, emoji, name, dimension, x, y, z, tags, memo };
+                        return { ...c, name, category, cardColor, dimension, x, y, z, tags, memo };
                     }
                     return c;
                 });
@@ -267,13 +434,15 @@
                 const newCoord = {
                     id: Date.now(),
                     createdAt: new Date().toISOString(),
-                    emoji, name, dimension, x, y, z, tags, memo
+                    isFavorite: false,
+                    name, category, cardColor, dimension, x, y, z, tags, memo
                 };
                 coords.unshift(newCoord);
             }
 
             saveAndRender();
             form.reset();
+            selectColor('none');
             pasteInput.value = '';
         });
 
@@ -282,8 +451,9 @@
             if (!target) return;
 
             editingId = id;
-            document.getElementById('emoji').value = target.emoji || '🏡';
             document.getElementById('name').value = target.name;
+            document.getElementById('category').value = target.category || 'other';
+            selectColor(target.cardColor || 'none');
             document.getElementById('dimension').value = target.dimension;
             document.getElementById('x').value = target.x;
             document.getElementById('y').value = target.y;
@@ -301,6 +471,7 @@
         function cancelEdit() {
             editingId = null;
             form.reset();
+            selectColor('none');
             pasteInput.value = '';
             formTitle.innerHTML = `<span>📍</span> 新しい場所を記録する`;
             submitBtn.textContent = 'リストに追加する';
@@ -324,17 +495,6 @@
             });
         }
 
-        function clearCurrentPos() {
-            document.getElementById('currentX').value = '';
-            document.getElementById('currentZ').value = '';
-            renderList();
-        }
-
-        function updateDistances() {
-            renderList();
-        }
-
-        // エクスポート（バックアップ保存）
         function exportData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(coords, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -345,7 +505,19 @@
             downloadAnchor.remove();
         }
 
-        // インポート（データ読込）
+        function exportShareUrl() {
+            try {
+                const jsonStr = JSON.stringify(coords);
+                const base64Data = btoa(unescape(encodeURIComponent(jsonStr)));
+                const shareUrl = window.location.origin + window.location.pathname + '#data=' + base64Data;
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert('共有用URLをコピーしました！\nLINEやDiscordに貼り付けるだけで、友達と座標を共有できます。');
+                });
+            } catch(e) {
+                alert('データ量が多いためURL共有ができません。ファイル保存をご利用ください。');
+            }
+        }
+
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -365,87 +537,157 @@
                 }
             };
             reader.readAsText(file);
-            event.target.value = ''; // リセット
+            event.target.value = '';
         }
 
         function saveAndRender() {
-            localStorage.setItem('minecraft_coords_v5', JSON.stringify(coords));
+            localStorage.setItem('minecraft_coords_v9', JSON.stringify(coords));
             renderList();
         }
 
         function renderList() {
-            const filter = filterDim.value;
+            const dimFilter = filterDim.value;
+            const catFilter = filterCategory.value;
+            const keyword = searchQuery.value.toLowerCase().trim();
             coordList.innerHTML = '';
 
             const curX = parseFloat(document.getElementById('currentX').value);
             const curZ = parseFloat(document.getElementById('currentZ').value);
             const hasCurrentPos = !isNaN(curX) && !isNaN(curZ);
 
-            const filtered = coords.filter(c => filter === 'all' || c.dimension === filter);
+            let filtered = coords.filter(c => {
+                const matchDim = (dimFilter === 'all' || c.dimension === dimFilter);
+                const matchCat = (catFilter === 'all' || c.category === catFilter);
+                
+                if (!matchDim || !matchCat) return false;
+
+                if (keyword) {
+                    const matchName = c.name.toLowerCase().includes(keyword);
+                    const matchMemo = c.memo && c.memo.toLowerCase().includes(keyword);
+                    const matchTags = c.tags && c.tags.some(t => t.toLowerCase().includes(keyword));
+                    return matchName || matchMemo || matchTags;
+                }
+                return true;
+            });
+
+            // お気に入りが常に上に来るようにソート
+            filtered.sort((a, b) => {
+                if (a.isFavorite && !b.isFavorite) return -1;
+                if (!a.isFavorite && b.isFavorite) return 1;
+                return 0;
+            });
 
             if (filtered.length === 0) {
-                coordList.innerHTML = `<div class="text-center text-[#a39b94] py-12 custom-card rounded-2xl">まだ記録された場所はありません</div>`;
+                coordList.innerHTML = `<div class="text-center text-[#b8b0a6] py-3 custom-card rounded-xl text-sm">該当する場所はありません</div>`;
                 return;
             }
 
             filtered.forEach(c => {
                 const dimInfo = dimNames[c.dimension];
+                const catInfo = categories[c.category] || categories['other'];
+                const cardColor = c.cardColor || 'none';
                 
                 let convertedText = '';
                 if (c.dimension === 'overworld') {
                     const nx = Math.round(c.x / 8);
                     const nz = Math.round(c.z / 8);
-                    convertedText = `<span class="text-xs text-[#d4abab] ml-2">🔀 ネザー: X:${nx}, Z:${nz}</span>`;
+                    convertedText = `<span class="text-xs text-[#d4abab] ml-2 font-medium">🔀 N: ${nx}, ${nz}</span>`;
                 } else if (c.dimension === 'nether') {
                     const ox = c.x * 8;
                     const oz = c.z * 8;
-                    convertedText = `<span class="text-xs text-[#b3c9b0] ml-2">🔀 通常: X:${ox}, Z:${oz}</span>`;
+                    convertedText = `<span class="text-xs text-[#b3c9b0] ml-2 font-medium">🔀 通常: ${ox}, ${oz}</span>`;
                 }
 
-                // 距離計算
-                let distanceText = '';
-                if (hasCurrentPos) {
-                    const dist = Math.round(Math.sqrt(Math.pow(c.x - curX, 2) + Math.pow(c.z - curZ, 2)));
-                    distanceText = `<span class="text-xs text-[#a39b94] ml-2">📏 約 ${dist}ブロック</span>`;
+                let distanceBadgeHtml = '';
+                if (!hasCurrentPos) {
+                    distanceBadgeHtml = `<button onclick="toggleCurrentInputBox(${c.id})" class="text-xs bg-[#312e2c] hover:bg-[#3d3936] text-[#d4c5b9] px-2 py-0.5 rounded border border-[#3f3a37] flex items-center gap-1 transition font-medium">📍 現在地を設定して距離を表示</button>`;
+                } else {
+                    const dx = c.x - curX;
+                    const dz = c.z - curZ;
+                    const dist = Math.round(Math.sqrt(dx * dx + dz * dz));
+                    
+                    let dirStr = '';
+                    const xDir = dx > 0 ? '東へ' : '西へ';
+                    const zDir = dz > 0 ? '南へ' : '北へ';
+                    dirStr = `（${Math.abs(dx)}b ${xDir} / ${Math.abs(dz)}b ${zDir}）`;
+
+                    distanceBadgeHtml = `<button onclick="toggleCurrentInputBox(${c.id})" class="text-xs bg-[#312e2c] hover:bg-[#3d3936] text-[#a8d0e6] px-2 py-0.5 rounded border border-[#3f3a37] flex items-center gap-1 transition font-medium" title="クリックして現在地を入力し直す">📏 距離: 約${dist}b ${dirStr}</button>`;
                 }
 
-                const timeText = c.createdAt ? `<span class="text-xs text-[#a39b94]/70 ml-2">🕒 ${formatDateTime(c.createdAt)}</span>` : '';
+                let currentInputBoxHtml = '';
+                if (activeInputCardId === c.id) {
+                    currentInputBoxHtml = `
+                        <div class="mt-2 p-2 bg-[#1b1918] rounded border border-[#383431] space-y-1.5 animate-fadeIn">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-medium text-[#d4c5b9]">📍 現在地の座標を入力</span>
+                                <button onclick="toggleCurrentInputBox(${c.id})" class="text-xs text-[#b8b0a6] hover:text-[#e6dfd5]">✕ 閉じる</button>
+                            </div>
+                            <div class="text-[11px] text-[#b8b0a6]">F3+Cのコピーを貼るか、X/Zを直接入力してください</div>
+                            <input type="text" placeholder="例: /tp 100 64 -200 (F3+C)" oninput="handleCurrentPaste(event)" 
+                                class="w-full custom-input rounded px-2 py-0.5 text-xs font-mono mb-1">
+                            <div class="flex items-center gap-1.5 font-mono">
+                                <div class="flex items-center gap-1 flex-1">
+                                    <span class="text-xs text-[#b8b0a6]">X:</span>
+                                    <input type="number" id="inlineCurrentX" value="${hasCurrentPos ? curX : ''}" placeholder="X" class="custom-input w-full px-2 py-0.5 rounded text-xs font-semibold">
+                                </div>
+                                <div class="flex items-center gap-1 flex-1">
+                                    <span class="text-xs text-[#b8b0a6]">Z:</span>
+                                    <input type="number" id="inlineCurrentZ" value="${hasCurrentPos ? curZ : ''}" placeholder="Z" class="custom-input w-full px-2 py-0.5 rounded text-xs font-semibold">
+                                </div>
+                                <button onclick="applyCurrentPos(${c.id})" class="custom-btn text-xs font-bold px-3 py-1 rounded shrink-0">設定</button>
+                            </div>
+                        </div>
+                    `;
+                }
 
-                // タグ表示の生成
+                const timeText = c.createdAt ? `<span class="text-xs text-[#b8b0a6]/70 ml-2">${formatDateTime(c.createdAt)}</span>` : '';
+                const favIcon = c.isFavorite ? '⭐' : '☆';
+                const favTitle = c.isFavorite ? 'お気に入り解除' : 'お気に入り登録';
+
                 let tagsHtml = '';
                 if (c.tags && c.tags.length > 0) {
-                    tagsHtml = `<div class="flex flex-wrap gap-1 mt-1.5">` + 
-                        c.tags.map(t => `<span class="text-[11px] bg-[#312e2c] text-[#d4c5b9] px-2 py-0.5 rounded-md border border-[#3f3a37]">#${escapeHtml(t)}</span>`).join('') + 
+                    tagsHtml = `<div class="flex flex-wrap gap-1 mt-0.5">` + 
+                        c.tags.map(t => `<span class="text-xs bg-[#312e2c] text-[#d4c5b9] px-1.5 py-0.2 rounded border border-[#3f3a37]">#${escapeHtml(t)}</span>`).join('') + 
                         `</div>`;
                 }
 
                 const card = document.createElement('div');
-                card.className = `custom-card p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4`;
+                card.className = `custom-card p-1.5 rounded-lg flex flex-col justify-between gap-1.5`;
+                if (cardColor !== 'none') {
+                    card.setAttribute('style', `border-left: 6px solid ${cardColor}; background: linear-gradient(90deg, ${cardColor}18 0%, #262321 30%); border-top: 1px solid #383431; border-right: 1px solid #383431; border-bottom: 1px solid #383431;`);
+                }
+
                 card.innerHTML = `
-                    <div>
-                        <div class="flex items-center gap-2 mb-1 flex-wrap">
-                            <span class="text-xl">${c.emoji || '📍'}</span>
-                            <span class="font-bold text-base text-white">${escapeHtml(c.name)}</span>
-                            <span class="text-xs px-2 py-0.5 rounded border ${dimInfo.class}">${dimInfo.name}</span>
-                            ${timeText}
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5">
+                        <div class="w-full sm:w-auto overflow-hidden">
+                            <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                                <button onclick="toggleFavorite(${c.id}, event)" class="text-sm hover:scale-110 transition" title="${favTitle}">${favIcon}</button>
+                                <span class="font-bold text-base text-[#e6dfd5]">${escapeHtml(c.name)}</span>
+                                <span class="text-xs px-2 py-0.2 rounded border ${catInfo.class}">${catInfo.icon} ${catInfo.name}</span>
+                                <span class="text-xs px-2 py-0.2 rounded border ${dimInfo.class}">${dimInfo.name}</span>
+                                ${timeText}
+                            </div>
+                            <div class="text-[#d4c5b9] font-mono text-sm flex flex-wrap items-center gap-y-1">
+                                <span class="font-bold text-[#e6dfd5] text-base">X:${c.x}, Y:${c.y}, Z:${c.z}</span> 
+                                ${convertedText} 
+                                <span class="ml-1">${distanceBadgeHtml}</span>
+                            </div>
+                            ${tagsHtml}
+                            ${c.memo ? `<p class="text-[#b8b0a6] text-sm mt-0.5">📝 ${escapeHtml(c.memo)}</p>` : ''}
                         </div>
-                        <div class="text-[#d4c5b9] font-mono text-sm mb-1">
-                            X: ${c.x}, Y: ${c.y}, Z: ${c.z} ${convertedText} ${distanceText}
+                        <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end shrink-0">
+                            <button onclick="copyCommand(${c.x}, ${c.y}, ${c.z})" class="bg-[#3b443c] hover:bg-[#485449] text-[#e6dfd5] text-xs md:text-sm px-2.5 py-1 rounded transition font-medium">
+                                /tpコピー
+                            </button>
+                            <button onclick="editCoord(${c.id})" class="bg-[#423d38] hover:bg-[#57504a] text-[#e6dfd5] text-xs md:text-sm px-2.5 py-1 rounded transition font-medium">
+                                編集
+                            </button>
+                            <button onclick="deleteCoord(${c.id})" class="bg-[#473636] hover:bg-[#5c4444] text-[#d4abab] text-xs md:text-sm px-2.5 py-1 rounded transition border border-[#5e4545] font-medium">
+                                削除
+                            </button>
                         </div>
-                        ${tagsHtml}
-                        ${c.memo ? `<p class="text-[#a39b94] text-sm mt-1">📝 ${escapeHtml(c.memo)}</p>` : ''}
                     </div>
-                    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
-                        <button onclick="copyCommand(${c.x}, ${c.y}, ${c.z})" class="bg-[#3b443c] hover:bg-[#485449] text-[#f0ebe4] text-xs px-3 py-2 rounded-lg transition">
-                            /tp コピー
-                        </button>
-                        <button onclick="editCoord(${c.id})" class="bg-[#423d38] hover:bg-[#57504a] text-[#f0ebe4] text-xs px-3 py-2 rounded-lg transition">
-                            編集
-                        </button>
-                        <button onclick="deleteCoord(${c.id})" class="bg-[#473636] hover:bg-[#5c4444] text-[#d4abab] text-xs px-3 py-2 rounded-lg transition border border-[#5e4545]">
-                            削除
-                        </button>
-                    </div>
+                    ${currentInputBoxHtml}
                 `;
                 coordList.appendChild(card);
             });
@@ -463,8 +705,6 @@
                 }[match];
             });
         }
-
-        filterDim.addEventListener('change', renderList);
 
         renderList();
     </script>
