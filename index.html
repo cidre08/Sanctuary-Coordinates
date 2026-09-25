@@ -53,6 +53,12 @@
         .cancel-btn:hover {
             background-color: #574f4b;
         }
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
     </style>
 </head>
 <body class="min-h-screen p-2.5 md:p-3 text-base">
@@ -72,55 +78,81 @@
             </div>
         </header>
 
-        <!-- 使い方 & データ・共有パネル -->
+        <!-- 使い方 & データ・共有パネル（初期は非表示） -->
         <div id="helpPanel" class="hidden custom-card p-3 rounded-xl shadow-lg mb-2.5 text-xs text-[#d4c5b9] space-y-2.5 border border-[#383431]">
             <div class="flex justify-between items-center pb-1.5 border-b border-[#383431]">
                 <span class="font-bold text-sm text-[#e6dfd5] flex items-center gap-1"><span>📖</span> このツールの使い方 & 鉱石高度</span>
                 <button onclick="toggleHelpMenu()" class="text-[#b8b0a6] hover:text-[#e6dfd5] px-1 font-medium">✕ 閉じる</button>
             </div>
             <div class="space-y-2 text-[#b8b0a6] leading-relaxed">
-                <p><strong class="text-[#e6dfd5]">📍 座標の自動入力:</strong> ゲーム内で <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">F3+C</code> を長押ししてコピーしたテキストを「座標をここにコピペ」欄に貼るだけで、XYZが自動入力されます。</p>
-                <p><strong class="text-[#e6dfd5]">💾 自動保存と3世代ログ:</strong> 「フォルダを選択」でPC上のフォルダを指定すると、データ変更時に自動で上書き保存され、直近3つ分のバックアップログも自動で残ります。</p>
-                <p><strong class="text-[#e6dfd5]">⛏️ 鉱石の適正高度(Java版):</strong> ダイヤ <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-58</code> / 鉄 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">16</code> / 銅 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">48</code> / 石炭 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">96</code> / 金 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-16</code></p>
+                <p><strong class="text-[#e6dfd5]">📍 座標の自動入力:</strong> ゲーム内で <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">F3+C</code> を長押ししてコピーしたテキストを貼るだけでXYZが自動入力されます。</p>
+                <p><strong class="text-[#e6dfd5]">📦 アーカイブ機能:</strong> 使わなくなった場所はアーカイブして一覧からスッキリ非表示にできます（後から復元も可能）。</p>
+                <p><strong class="text-[#e6dfd5]">⚠️ 容量と上限:</strong> 座標は最大1,000件まで保存でき、上限（900件）に近づいたり達したりすると警告アラートが表示されます。</p>
+                <p><strong class="text-[#e6dfd5]">⛏️ 鉱石の適正高度(Java版):</strong> ダイヤ <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-58</code> / 鉄 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">16</code> / 金 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-16</code></p>
             </div>
             
-            <!-- データ管理 & カテゴリ管理 & フォルダ選択エリア -->
-            <div class="pt-2 border-t border-[#383431] flex flex-col gap-2">
-                
-                <!-- フォルダ選択バッジ & ボタン -->
-                <div class="flex items-center justify-between bg-[#1b1918] p-2 rounded-lg border border-[#383431]">
-                    <div class="flex items-center gap-1.5 overflow-hidden pr-2">
-                        <span class="text-xs shrink-0">📂</span>
-                        <span id="folderStatusText" class="text-xs text-[#b8b0a6] truncate font-mono">保存先フォルダ: 未選択</span>
+            <!-- 折りたたみ式の詳細設定・管理メニュー -->
+            <details class="group pt-1 border-t border-[#383431]">
+                <summary class="cursor-pointer text-xs font-bold text-[#d4c5b9] py-1 flex items-center justify-between select-none hover:text-[#e6dfd5]">
+                    <span class="flex items-center gap-1">⚙️ 詳細なデータ管理・フォルダ選択・バックアップ</span>
+                    <span class="text-xs text-[#b8b0a6] group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div class="pt-2 space-y-2.5 border-t border-[#383431]/50 mt-1">
+                    
+                    <!-- フォルダ選択バッジ & ボタン -->
+                    <div class="flex items-center justify-between bg-[#1b1918] p-2 rounded-lg border border-[#383431]">
+                        <div class="flex items-center gap-1.5 overflow-hidden pr-2">
+                            <span class="text-xs shrink-0">📂</span>
+                            <span id="folderStatusText" class="text-xs text-[#b8b0a6] truncate font-mono">保存先フォルダ: 未選択</span>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button id="reconnectFolderBtn" onclick="reconnectFolder()" class="hidden sub-btn text-xs px-2 py-1 rounded shadow-sm font-bold text-[#a8d0e6]">
+                                再接続
+                            </button>
+                            <button onclick="selectTargetFolder()" class="custom-btn text-xs px-2.5 py-1 rounded shadow-sm font-bold">
+                                フォルダを選択
+                            </button>
+                        </div>
                     </div>
-                    <button onclick="selectTargetFolder()" class="custom-btn text-xs px-2.5 py-1 rounded shadow-sm font-bold shrink-0">
-                        フォルダを選択
-                    </button>
-                </div>
 
-                <div class="flex items-center justify-between">
-                    <button onclick="openCategoryManager()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1 text-[#d4c5b9]">
-                        <span>🏷️</span> カテゴリ管理
-                    </button>
-                    <button onclick="exportShareUrl()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1 text-[#a8d0e6]">
-                        <span>🔗</span> 共有用URL
-                    </button>
+                    <div class="flex items-center justify-between">
+                        <div class="flex gap-1.5">
+                            <button onclick="openCategoryManager()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1 text-[#d4c5b9]">
+                                <span>🏷️</span> カテゴリ管理
+                            </button>
+                            <button onclick="openArchiveModal()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1 text-[#d4a037]">
+                                <span>📦</span> アーカイブ一覧 (<span id="archiveCountBadge">0</span>)
+                            </button>
+                        </div>
+                        <button onclick="exportShareUrl()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1 text-[#a8d0e6]">
+                            <span>🔗</span> 共有用URL
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-1.5 justify-end">
+                        <button onclick="exportData()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1">
+                            <span>💾</span> 手動バックアップ保存
+                        </button>
+                        <button onclick="document.getElementById('importFile').click()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1">
+                            <span>📂</span> 読込
+                        </button>
+                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
+                    </div>
                 </div>
-                <div class="flex items-center gap-1.5 justify-end">
-                    <button onclick="exportData()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1">
-                        <span>💾</span> 手動バックアップ保存
-                    </button>
-                    <button onclick="document.getElementById('importFile').click()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1">
-                        <span>📂</span> 読込
-                    </button>
-                    <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
-                </div>
-            </div>
+            </details>
         </div>
 
         <!-- 隠し保持用（計算用） -->
         <input type="hidden" id="currentX">
         <input type="hidden" id="currentZ">
+
+        <!-- 容量警告バナー（上限1000件に向けて） -->
+        <div id="storageWarningBanner" class="hidden custom-card p-2.5 rounded-xl shadow-lg mb-2.5 bg-[#362f2b] border-[#594539] text-xs text-[#e6bc9c] flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+                <span>⚠️</span>
+                <span id="storageWarningText">保存件数が上限の1,000件に近づいています。不要なデータの削除やアーカイブを行ってください。</span>
+            </div>
+            <span id="storageCountText" class="font-mono font-bold shrink-0 ml-2">0 / 1000件</span>
+        </div>
 
         <!-- 入力・編集フォーム -->
         <div class="custom-card p-2.5 rounded-xl shadow-lg mb-2.5">
@@ -235,26 +267,37 @@
                 <h2 class="text-sm font-bold text-[#d4c5b9]">記録した座標一覧</h2>
             </div>
             
-            <!-- 検索 & フィルターバー -->
+            <!-- 検索 & フィルター & ソートバー -->
             <div class="space-y-1.5 mb-2">
-                <input type="text" id="searchQuery" placeholder="🔍 名前・タグ・メモで検索..." oninput="renderList()" 
+                <input type="text" id="searchQuery" placeholder="🔍 名前・タグ・メモで検索..." oninput="currentPage=1; renderList()" 
                     class="w-full custom-input rounded px-2.5 py-1 text-sm">
-                <div class="grid grid-cols-2 gap-1.5">
-                    <select id="filterDim" class="custom-input rounded px-2 py-1 text-sm text-[#e6dfd5]" onchange="renderList()">
+                <div class="grid grid-cols-3 gap-1.5">
+                    <select id="filterDim" class="custom-input rounded px-2 py-1 text-xs text-[#e6dfd5]" onchange="currentPage=1; renderList()">
                         <option value="all">すべてのディメンション</option>
                         <option value="overworld">オーバーワールド</option>
                         <option value="nether">ネザー</option>
                         <option value="end">ジ・エンド</option>
                     </select>
-                    <!-- カテゴリフィルター -->
-                    <select id="filterCategory" class="custom-input rounded px-2 py-1 text-sm text-[#e6dfd5]" onchange="renderList()">
+                    <select id="filterCategory" class="custom-input rounded px-2 py-1 text-xs text-[#e6dfd5]" onchange="currentPage=1; renderList()">
                         <!-- 動的に生成されます -->
+                    </select>
+                    <select id="sortOrder" class="custom-input rounded px-2 py-1 text-xs text-[#e6dfd5]" onchange="currentPage=1; renderList()">
+                        <option value="newest">新着順 (新しい順)</option>
+                        <option value="oldest">古い順</option>
+                        <option value="name">名前順 (あいうえお)</option>
                     </select>
                 </div>
             </div>
 
-            <div id="coordList" class="space-y-1 text-sm">
+            <div id="coordList" class="space-y-2 text-sm">
                 <!-- JavaScriptでここにリストが挿入されます -->
+            </div>
+
+            <!-- ページネーションコントロール -->
+            <div id="paginationContainer" class="flex items-center justify-between mt-2 px-1 text-xs text-[#b8b0a6] hidden">
+                <button id="prevPageBtn" onclick="changePage(-1)" class="sub-btn px-3 py-1 rounded font-medium disabled:opacity-40">◀ 前の20件</button>
+                <span id="pageInfoText" class="font-mono">1 / 1 ページ</span>
+                <button id="nextPageBtn" onclick="changePage(1)" class="sub-btn px-3 py-1 rounded font-medium disabled:opacity-40">次の20件 ▶</button>
             </div>
         </div>
     </div>
@@ -300,12 +343,34 @@
         </div>
     </div>
 
+    <!-- アーカイブ管理モーダル -->
+    <div id="archiveModal" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3">
+        <div class="custom-card p-4 rounded-xl shadow-2xl max-w-lg w-full space-y-3 border border-[#383431]">
+            <div class="flex justify-between items-center pb-2 border-b border-[#383431]">
+                <span class="font-bold text-sm text-[#e6dfd5] flex items-center gap-1.5"><span>📦</span> アーカイブされた場所 (<span id="modalArchiveCount">0</span>件)</span>
+                <button onclick="closeArchiveModal()" class="text-[#b8b0a6] hover:text-[#e6dfd5] text-sm">✕</button>
+            </div>
+            <p class="text-xs text-[#b8b0a6]">使わなくなった古い拠点や採掘済みの場所です。いつでも通常の一覧へ復元できます。</p>
+            <div id="archiveListContainer" class="space-y-2 max-h-72 overflow-y-auto text-xs pr-1">
+                <!-- JSで動的生成 -->
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t border-[#383431]">
+                <button onclick="clearAllArchived()" class="bg-[#473636] hover:bg-[#5c4444] text-[#d4abab] text-xs px-3 py-1.5 rounded border border-[#5e4545] font-medium">
+                    アーカイブをすべて完全に削除
+                </button>
+                <button onclick="closeArchiveModal()" class="sub-btn py-1.5 px-4 rounded text-xs font-medium">閉じる</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        let coords = JSON.parse(localStorage.getItem('minecraft_coords_v9')) || [];
+        let coords = JSON.parse(localStorage.getItem('minecraft_coords_v10')) || [];
         let editingId = null;
         let selectedColor = 'none';
         let activeInputCardId = null;
-        let targetDirectoryHandle = null; // フォルダハンドルの保持
+        let targetDirectoryHandle = null;
+        let currentPage = 1;
+        const ITEMS_PER_PAGE = 20;
 
         // デフォルトカテゴリ
         const defaultCategories = {
@@ -318,13 +383,14 @@
             other: { name: 'その他', icon: '🔖', class: 'bg-[#2e2e2e] text-[#cccccc] border-[#424242]' }
         };
 
-        let customCategories = JSON.parse(localStorage.getItem('minecraft_custom_categories_v9')) || {};
+        let customCategories = JSON.parse(localStorage.getItem('minecraft_custom_categories_v10')) || {};
         let categories = { ...defaultCategories, ...customCategories };
 
         const form = document.getElementById('coordForm');
         const coordList = document.getElementById('coordList');
         const filterDim = document.getElementById('filterDim');
         const filterCategory = document.getElementById('filterCategory');
+        const sortOrder = document.getElementById('sortOrder');
         const searchQuery = document.getElementById('searchQuery');
         const pasteInput = document.getElementById('pasteCoord');
         const formTitle = document.getElementById('formTitle');
@@ -336,6 +402,9 @@
         const addCategoryModal = document.getElementById('addCategoryModal');
         const categoryManagerModal = document.getElementById('categoryManagerModal');
         const customCategoryList = document.getElementById('customCategoryList');
+        const archiveModal = document.getElementById('archiveModal');
+        const archiveListContainer = document.getElementById('archiveListContainer');
+        const archiveCountBadge = document.getElementById('archiveCountBadge');
 
         const dimNames = {
             overworld: { name: 'オーバーワールド', short: '通常', class: 'bg-[#2b332b] text-[#b3c9b0] border-[#3d4d3c]' },
@@ -343,79 +412,125 @@
             end: { name: 'ジ・エンド', short: 'エンド', class: 'bg-[#312b3b] text-[#c7b5d9] border-[#40384d]' }
         };
 
-        // --- フォルダ選択 & 自動保存 (3世代ログ付き) 機能 ---
+        // --- IndexedDBを用いたフォルダハンドルの永続化 ---
+        const DB_NAME = 'MinecraftCoordsDB_v2';
+        const STORE_NAME = 'settings';
+        const KEY_HANDLE = 'targetDirectoryHandle';
+
+        function saveHandleToIDB(handle) {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+                };
+                request.onsuccess = (e) => {
+                    const db = e.target.result;
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    tx.objectStore(STORE_NAME).put(handle, KEY_HANDLE);
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = (err) => reject(err);
+                };
+                request.onerror = (err) => reject(err);
+            });
+        }
+
+        function loadHandleFromIDB() {
+            return new Promise((resolve) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+                };
+                request.onsuccess = (e) => {
+                    const db = e.target.result;
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const req = tx.objectStore(STORE_NAME).get(KEY_HANDLE);
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => resolve(null);
+                };
+                request.onerror = () => resolve(null);
+            });
+        }
+
+        async function initFolderHandle() {
+            const handle = await loadHandleFromIDB();
+            if (handle) {
+                targetDirectoryHandle = handle;
+                const statusText = document.getElementById('folderStatusText');
+                const reconnectBtn = document.getElementById('reconnectFolderBtn');
+                try {
+                    const opts = { mode: 'readwrite' };
+                    if ((await handle.queryPermission(opts)) === 'granted') {
+                        statusText.textContent = '保存先: ' + handle.name;
+                        statusText.className = 'text-xs text-[#a8d0e6] truncate font-bold font-mono';
+                        reconnectBtn.classList.add('hidden');
+                    } else {
+                        statusText.textContent = '保存先(要再接続): ' + handle.name;
+                        statusText.className = 'text-xs text-[#d4abab] truncate font-bold font-mono';
+                        reconnectBtn.classList.remove('hidden');
+                    }
+                } catch (err) {
+                    statusText.textContent = '保存先(要再接続): ' + handle.name;
+                    statusText.className = 'text-xs text-[#d4abab] truncate font-bold font-mono';
+                    reconnectBtn.classList.remove('hidden');
+                }
+            }
+        }
+
+        async function reconnectFolder() {
+            if (!targetDirectoryHandle) return;
+            try {
+                const opts = { mode: 'readwrite' };
+                if ((await targetDirectoryHandle.requestPermission(opts)) === 'granted') {
+                    const statusText = document.getElementById('folderStatusText');
+                    statusText.textContent = '保存先: ' + targetDirectoryHandle.name;
+                    statusText.className = 'text-xs text-[#a8d0e6] truncate font-bold font-mono';
+                    document.getElementById('reconnectFolderBtn').classList.add('hidden');
+                    alert('フォルダの再接続に成功しました！');
+                    await autoSaveToFolder();
+                } else {
+                    alert('権限が許可されませんでした。');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('再接続に失敗しました。「フォルダを選択」から再度指定してください。');
+            }
+        }
+
         async function selectTargetFolder() {
             try {
                 if (!window.showDirectoryPicker) {
-                    alert('お使いのブラウザはフォルダの直接指定（File System Access API）に対応していません。Google Chrome または Microsoft Edge をご利用ください。');
+                    alert('お使いのブラウザはフォルダの直接指定に対応していません。Google Chrome または Microsoft Edge をご利用ください。');
                     return;
                 }
                 targetDirectoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                await saveHandleToIDB(targetDirectoryHandle);
                 
                 const statusText = document.getElementById('folderStatusText');
                 statusText.textContent = '保存先: ' + targetDirectoryHandle.name;
                 statusText.className = 'text-xs text-[#a8d0e6] truncate font-bold font-mono';
+                document.getElementById('reconnectFolderBtn').classList.add('hidden');
                 
-                alert(`フォルダ「${targetDirectoryHandle.name}」を保存先に指定しました！\n今後は座標を追加・編集・削除するたびに、このフォルダに自動上書き保存され、最新の3世代ログも自動的に管理されます。`);
-                
-                // 選択直後に現在のデータを保存してみる
+                alert(`フォルダ「${targetDirectoryHandle.name}」を保存先に指定しました！`);
                 await autoSaveToFolder();
             } catch (err) {
-                if (err.name !== 'AbortError') {
-                    console.error(err);
-                    alert('フォルダの選択に失敗しました。');
-                }
+                if (err.name !== 'AbortError') console.error(err);
             }
         }
 
         async function autoSaveToFolder() {
             if (!targetDirectoryHandle) return;
-
             try {
-                // 権限の確認・要求
                 const options = { mode: 'readwrite' };
                 if ((await targetDirectoryHandle.queryPermission(options)) !== 'granted') {
-                    if ((await targetDirectoryHandle.requestPermission(options)) !== 'granted') {
-                        return;
-                    }
+                    if ((await targetDirectoryHandle.requestPermission(options)) !== 'granted') return;
                 }
-
                 const jsonData = JSON.stringify(coords, null, 2);
-
-                // 1. メインファイル上書き保存 (minecraft_coords.json)
                 const mainFileHandle = await targetDirectoryHandle.getFileHandle('minecraft_coords.json', { create: true });
                 const writableMain = await mainFileHandle.createWritable();
                 await writableMain.write(jsonData);
                 await writableMain.close();
-
-                // 2. 3世代ログの管理 (backup_YYYYMMDD_HHMMSS.json)
-                const now = new Date();
-                const pad = (n) => String(n).padStart(2, '0');
-                const timestamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-                const backupFileName = `backup_${timestamp}.json`;
-
-                const backupFileHandle = await targetDirectoryHandle.getFileHandle(backupFileName, { create: true });
-                const writableBackup = await backupFileHandle.createWritable();
-                await writableBackup.write(jsonData);
-                await writableBackup.close();
-
-                // フォルダ内の backup_*.json を列挙して、最新3つ以外を削除する
-                const backupEntries = [];
-                for await (const [name, handle] of targetDirectoryHandle.entries()) {
-                    if (name.startsWith('backup_') && name.endsWith('.json')) {
-                        backupEntries.push(name);
-                    }
-                }
-
-                // 降順ソート（新しいものが上）
-                backupEntries.sort().reverse();
-
-                // 4番目以降の古いバックアップを削除
-                if (backupEntries.length > 3) {
-                    for (let i = 3; i < backupEntries.length; i++) {
-                        await targetDirectoryHandle.removeEntry(backupEntries[i]);
-                    }
-                }
             } catch (err) {
                 console.error('自動保存エラー:', err);
             }
@@ -424,16 +539,13 @@
         function updateCategorySelects() {
             const categorySelect = document.getElementById('category');
             const currentVal = categorySelect.value;
-
             let html = '';
             for (const [key, cat] of Object.entries(categories)) {
                 html += `<option value="${key}">${cat.icon} ${cat.name}</option>`;
             }
             html += `<option value="add_new">➕ 新しいカテゴリを追加...</option>`;
             categorySelect.innerHTML = html;
-            if (categories[currentVal]) {
-                categorySelect.value = currentVal;
-            }
+            if (categories[currentVal]) categorySelect.value = currentVal;
 
             const currentFilterVal = filterCategory.value;
             let filterHtml = `<option value="all">すべてのカテゴリ</option><option value="important">⭐ 重要</option>`;
@@ -441,9 +553,7 @@
                 filterHtml += `<option value="${key}">${cat.icon} ${cat.name}</option>`;
             }
             filterCategory.innerHTML = filterHtml;
-            if (currentFilterVal) {
-                filterCategory.value = currentFilterVal;
-            }
+            if (currentFilterVal) filterCategory.value = currentFilterVal;
         }
 
         function handleCategoryChange(e) {
@@ -466,55 +576,33 @@
         function saveNewCategory() {
             const name = document.getElementById('newCatName').value.trim();
             const icon = document.getElementById('newCatIcon').value.trim() || '🏷️';
-            if (!name) {
-                alert('カテゴリ名を入力してください。');
-                return;
-            }
+            if (!name) { alert('カテゴリ名を入力してください。'); return; }
 
             const key = 'custom_' + Date.now();
-            const bgClasses = [
-                'bg-[#302b36] text-[#d9b5d0] border-[#4d3846]',
-                'bg-[#2b3336] text-[#b0d2d9] border-[#384a4d]',
-                'bg-[#36322b] text-[#d9cca8] border-[#4d4438]',
-                'bg-[#362b2b] text-[#d9b5b5] border-[#4d3838]'
-            ];
-            const randomClass = bgClasses[Math.floor(Math.random() * bgClasses.length)];
-
-            customCategories[key] = { name, icon, class: randomClass };
+            customCategories[key] = { name, icon, class: 'bg-[#302b36] text-[#d9b5d0] border-[#4d3846]' };
             categories[key] = customCategories[key];
 
-            localStorage.setItem('minecraft_custom_categories_v9', JSON.stringify(customCategories));
+            localStorage.setItem('minecraft_custom_categories_v10', JSON.stringify(customCategories));
             updateCategorySelects();
             document.getElementById('category').value = key;
             closeAddCategoryModal();
         }
 
-        function openCategoryManager() {
-            renderCustomCategoryList();
-            categoryManagerModal.classList.remove('hidden');
-        }
-
-        function closeCategoryManager() {
-            categoryManagerModal.classList.add('hidden');
-            renderList();
-        }
+        function openCategoryManager() { renderCustomCategoryList(); categoryManagerModal.classList.remove('hidden'); }
+        function closeCategoryManager() { categoryManagerModal.classList.add('hidden'); renderList(); }
 
         function renderCustomCategoryList() {
             const customKeys = Object.keys(customCategories);
             if (customKeys.length === 0) {
-                customCategoryList.innerHTML = `<div class="text-center text-[#b8b0a6] py-3">カスタムカテゴリはまだありません</div>`;
+                customCategoryList.innerHTML = `<div class="text-center text-[#b8b0a6] py-3">カスタムカテゴリはありません</div>`;
                 return;
             }
-
             let html = '';
             for (const key of customKeys) {
                 const cat = customCategories[key];
                 html += `
                     <div class="flex items-center justify-between p-2 bg-[#1b1918] rounded border border-[#383431]">
-                        <div class="flex items-center gap-2">
-                            <span class="text-base">${cat.icon}</span>
-                            <span class="font-bold text-[#e6dfd5]">${escapeHtml(cat.name)}</span>
-                        </div>
+                        <div class="flex items-center gap-2"><span class="text-base">${cat.icon}</span><span class="font-bold text-[#e6dfd5]">${escapeHtml(cat.name)}</span></div>
                         <div class="flex items-center gap-1.5">
                             <button onclick="editCustomCategory('${key}')" class="sub-btn text-[11px] px-2 py-0.5 rounded">編集</button>
                             <button onclick="deleteCustomCategory('${key}')" class="bg-[#473636] hover:bg-[#5c4444] text-[#d4abab] text-[11px] px-2 py-0.5 rounded border border-[#5e4545]">削除</button>
@@ -527,87 +615,125 @@
 
         function editCustomCategory(key) {
             const cat = customCategories[key];
-            const newName = prompt('新しいカテゴリ名を入力してください:', cat.name);
-            if (newName === null) return;
-            const trimmedName = newName.trim();
-            if (!trimmedName) {
-                alert('カテゴリ名が空のため変更されませんでした。');
-                return;
-            }
-            const newIcon = prompt('新しいアイコン絵文字(1文字)を入力してください:', cat.icon);
-            if (newIcon === null) return;
-
-            customCategories[key].name = trimmedName;
-            customCategories[key].icon = newIcon.trim() || '🏷️';
+            const newName = prompt('新しいカテゴリ名:', cat.name);
+            if (!newName || !newName.trim()) return;
+            const newIcon = prompt('新しいアイコン(1文字):', cat.icon);
+            customCategories[key].name = newName.trim();
+            customCategories[key].icon = (newIcon && newIcon.trim()) || '🏷️';
             categories[key] = customCategories[key];
-
-            localStorage.setItem('minecraft_custom_categories_v9', JSON.stringify(customCategories));
+            localStorage.setItem('minecraft_custom_categories_v10', JSON.stringify(customCategories));
             updateCategorySelects();
             renderCustomCategoryList();
         }
 
         function deleteCustomCategory(key) {
-            const cat = customCategories[key];
-            if (confirm(`「${cat.name}」を削除してもよろしいですか？\n※このカテゴリを設定していた場所は「その他」に移動します。`)) {
-                coords = coords.map(c => {
-                    if (c.category === key) {
-                        return { ...c, category: 'other' };
-                    }
-                    return c;
-                });
+            if (confirm('このカテゴリを削除しますか？設定されていた場所は「その他」に移動します。')) {
+                coords = coords.map(c => c.category === key ? { ...c, category: 'other' } : c);
                 saveAndRender();
-
                 delete customCategories[key];
                 delete categories[key];
-                localStorage.setItem('minecraft_custom_categories_v9', JSON.stringify(customCategories));
-
+                localStorage.setItem('minecraft_custom_categories_v10', JSON.stringify(customCategories));
                 updateCategorySelects();
                 renderCustomCategoryList();
             }
         }
 
+        // --- アーカイブ機能 ---
+        function toggleArchive(id, e) {
+            e.stopPropagation();
+            coords = coords.map(c => c.id === id ? { ...c, isArchived: !c.isArchived } : c);
+            saveAndRender();
+        }
+
+        function openArchiveModal() {
+            renderArchiveList();
+            archiveModal.classList.remove('hidden');
+        }
+
+        function closeArchiveModal() {
+            archiveModal.classList.add('hidden');
+            renderList();
+        }
+
+        function renderArchiveList() {
+            const archivedItems = coords.filter(c => c.isArchived);
+            archiveCountBadge.textContent = archivedItems.length;
+            document.getElementById('modalArchiveCount').textContent = archivedItems.length;
+
+            if (archivedItems.length === 0) {
+                archiveListContainer.innerHTML = `<div class="text-center text-[#b8b0a6] py-4">アーカイブされた場所はありません</div>`;
+                return;
+            }
+
+            let html = '';
+            archivedItems.forEach(c => {
+                html += `
+                    <div class="flex items-center justify-between p-2 bg-[#1b1918] rounded border border-[#383431]">
+                        <div>
+                            <div class="font-bold text-[#e6dfd5]">${escapeHtml(c.name)} <span class="font-mono text-xs text-[#b8b0a6]">(X:${c.x}, Z:${c.z})</span></div>
+                            <div class="text-[11px] text-[#b8b0a6]">追加日: ${formatDateTime(c.createdAt)}</div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button onclick="toggleArchive(${c.id}, event); renderArchiveList();" class="sub-btn text-xs px-2.5 py-1 rounded text-[#a8d0e6]">復元</button>
+                            <button onclick="deleteCoord(${c.id}); renderArchiveList();" class="bg-[#473636] hover:bg-[#5c4444] text-[#d4abab] text-xs px-2 py-1 rounded border border-[#5e4545]">削除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            archiveListContainer.innerHTML = html;
+        }
+
+        function clearAllArchived() {
+            if (confirm('アーカイブされているすべての場所を完全に削除しますか？')) {
+                coords = coords.filter(c => !c.isArchived);
+                saveAndRender();
+                renderArchiveList();
+            }
+        }
+
+        // --- 容量確認・警告チェック ---
+        function checkStorageLimit() {
+            const totalCount = coords.length;
+            const banner = document.getElementById('storageWarningBanner');
+            const countText = document.getElementById('storageCountText');
+            const warningText = document.getElementById('storageWarningText');
+
+            archiveCountBadge.textContent = coords.filter(c => c.isArchived).length;
+            countText.textContent = `${totalCount} / 1000件`;
+
+            if (totalCount >= 1000) {
+                banner.classList.remove('hidden');
+                banner.className = 'custom-card p-2.5 rounded-xl shadow-lg mb-2.5 bg-[#473636] border-[#5e4545] text-xs text-[#d4abab] flex items-center justify-between';
+                warningText.textContent = '⚠️ 保存件数が上限の1,000件に達しました！新しい座標を追加するには不要なものを削除またはアーカイブしてください。';
+            } else if (totalCount >= 900) {
+                banner.classList.remove('hidden');
+                banner.className = 'custom-card p-2.5 rounded-xl shadow-lg mb-2.5 bg-[#362f2b] border-[#594539] text-xs text-[#e6bc9c] flex items-center justify-between';
+                warningText.textContent = '⚠️ 保存件数が900件を超えました。上限の1,000件に近づいています。';
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
         function filterByTag(tag) {
             searchQuery.value = tag;
+            currentPage = 1;
             renderList();
-            window.scrollTo({ top: document.getElementById('searchQuery').offsetTop - 20, behavior: 'smooth' });
         }
 
         function filterByCategoryKey(catKey) {
             filterCategory.value = catKey;
+            currentPage = 1;
             renderList();
-            window.scrollTo({ top: document.getElementById('searchQuery').offsetTop - 20, behavior: 'smooth' });
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             updateCategorySelects();
-
-            if (location.hash.startsWith('#data=')) {
-                try {
-                    const base64Data = location.hash.replace('#data=', '');
-                    const jsonStr = decodeURIComponent(escape(atob(base64Data)));
-                    const imported = JSON.parse(jsonStr);
-                    if (Array.isArray(imported)) {
-                        if (confirm('共有された座標データを読み込みますか？')) {
-                            coords = imported;
-                            saveAndRender();
-                            history.replaceState(null, null, window.location.pathname);
-                            alert('共有データを正常に読み込みました！');
-                        }
-                    }
-                } catch(e) {
-                    console.error(e);
-                }
-            }
+            await initFolderHandle();
+            renderList();
         });
 
-        function toggleHelpMenu() {
-            helpPanel.classList.toggle('hidden');
-        }
-
-        function toggleColorMenu(e) {
-            e.stopPropagation();
-            colorMenu.classList.toggle('hidden');
-        }
+        function toggleHelpMenu() { helpPanel.classList.toggle('hidden'); }
+        function toggleColorMenu(e) { e.stopPropagation(); colorMenu.classList.toggle('hidden'); }
 
         function selectColor(color) {
             selectedColor = color;
@@ -630,17 +756,11 @@
         function formatDateTime(isoString) {
             if (!isoString) return '';
             const date = new Date(isoString);
-            const y = date.getFullYear();
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const d = String(date.getDate()).padStart(2, '0');
-            const h = String(date.getHours()).padStart(2, '0');
-            const min = String(date.getMinutes()).padStart(2, '0');
-            return `${y}/${m}/${d} ${h}:${min}`;
+            return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
         }
 
         pasteInput.addEventListener('input', (e) => {
-            const text = e.target.value;
-            const matches = text.match(/-?\d+/g);
+            const matches = e.target.value.match(/-?\d+/g);
             if (matches && matches.length >= 3) {
                 document.getElementById('x').value = matches[0];
                 document.getElementById('y').value = matches[1];
@@ -650,27 +770,17 @@
 
         function toggleFavorite(id, e) {
             e.stopPropagation();
-            coords = coords.map(c => {
-                if (c.id === id) {
-                    return { ...c, isFavorite: !c.isFavorite };
-                }
-                return c;
-            });
+            coords = coords.map(c => c.id === id ? { ...c, isFavorite: !c.isFavorite } : c);
             saveAndRender();
         }
 
         function toggleCurrentInputBox(id) {
-            if (activeInputCardId === id) {
-                activeInputCardId = null;
-            } else {
-                activeInputCardId = id;
-            }
+            activeInputCardId = activeInputCardId === id ? null : id;
             renderList();
         }
 
         function handleCurrentPaste(e) {
-            const text = e.target.value;
-            const matches = text.match(/-?\d+/g);
+            const matches = e.target.value.match(/-?\d+/g);
             if (matches && matches.length >= 3) {
                 const xInput = document.getElementById('inlineCurrentX');
                 const zInput = document.getElementById('inlineCurrentZ');
@@ -682,22 +792,22 @@
         function applyCurrentPos(id) {
             const xInput = document.getElementById('inlineCurrentX');
             const zInput = document.getElementById('inlineCurrentZ');
-            if (xInput && zInput) {
-                const xVal = xInput.value;
-                const zVal = zInput.value;
-                if (xVal !== '' && zVal !== '') {
-                    document.getElementById('currentX').value = xVal;
-                    document.getElementById('currentZ').value = zVal;
-                    activeInputCardId = null;
-                    renderList();
-                } else {
-                    alert('X座標とZ座標を入力してください。');
-                }
+            if (xInput && zInput && xInput.value !== '' && zInput.value !== '') {
+                document.getElementById('currentX').value = xInput.value;
+                document.getElementById('currentZ').value = zInput.value;
+                activeInputCardId = null;
+                renderList();
             }
         }
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
+            
+            if (editingId === null && coords.length >= 1000) {
+                alert('保存件数が上限の1,000件に達しているため、新しい場所を追加できません。不要なものを削除またはアーカイブしてください。');
+                return;
+            }
+
             const name = document.getElementById('name').value;
             const category = document.getElementById('category').value;
             const cardColor = selectedColor;
@@ -710,18 +820,14 @@
             const memo = document.getElementById('memo').value;
 
             if (editingId !== null) {
-                coords = coords.map(c => {
-                    if (c.id === editingId) {
-                        return { ...c, name, category, cardColor, dimension, x, y, z, tags, memo };
-                    }
-                    return c;
-                });
+                coords = coords.map(c => c.id === editingId ? { ...c, name, category, cardColor, dimension, x, y, z, tags, memo } : c);
                 cancelEdit();
             } else {
                 const newCoord = {
                     id: Date.now(),
                     createdAt: new Date().toISOString(),
                     isFavorite: false,
+                    isArchived: false,
                     name, category, cardColor, dimension, x, y, z, tags, memo
                 };
                 coords.unshift(newCoord);
@@ -751,7 +857,6 @@
             formTitle.innerHTML = `<span>✏️</span> 「${escapeHtml(target.name)}」を編集中`;
             submitBtn.textContent = '変更を保存する';
             cancelEditBtn.classList.remove('hidden');
-
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -766,10 +871,8 @@
         }
 
         function deleteCoord(id) {
-            if (confirm('この場所を削除してもよろしいですか？')) {
-                if (editingId === id) {
-                    cancelEdit();
-                }
+            if (confirm('この場所を完全に削除しますか？')) {
+                if (editingId === id) cancelEdit();
                 coords = coords.filter(c => c.id !== id);
                 saveAndRender();
             }
@@ -777,9 +880,7 @@
 
         function copyCommand(x, y, z) {
             const cmd = `/tp ${x} ${y} ${z}`;
-            navigator.clipboard.writeText(cmd).then(() => {
-                alert(`コマンドをコピーしました: ${cmd}`);
-            });
+            navigator.clipboard.writeText(cmd).then(() => alert(`コマンドをコピーしました: ${cmd}`));
         }
 
         function exportData() {
@@ -797,9 +898,7 @@
                 const jsonStr = JSON.stringify(coords);
                 const base64Data = btoa(unescape(encodeURIComponent(jsonStr)));
                 const shareUrl = window.location.origin + window.location.pathname + '#data=' + base64Data;
-                navigator.clipboard.writeText(shareUrl).then(() => {
-                    alert('共有用URLをコピーしました！\nLINEやDiscordに貼り付けるだけで、友達と座標を共有できます。');
-                });
+                navigator.clipboard.writeText(shareUrl).then(() => alert('共有用URLをコピーしました！'));
             } catch(e) {
                 alert('データ量が多いためURL共有ができません。ファイル保存をご利用ください。');
             }
@@ -816,26 +915,100 @@
                         coords = imported;
                         saveAndRender();
                         alert('データを正常に読み込みました！');
-                    } else {
-                        alert('ファイルの形式が正しくありません。');
-                    }
-                } catch (err) {
-                    alert('JSONファイルの読み込みに失敗しました。');
-                }
+                    } else { alert('ファイルの形式が正しくありません。'); }
+                } catch (err) { alert('JSONファイルの読み込みに失敗しました。'); }
             };
             reader.readAsText(file);
             event.target.value = '';
         }
 
         function saveAndRender() {
-            localStorage.setItem('minecraft_coords_v9', JSON.stringify(coords));
+            localStorage.setItem('minecraft_coords_v10', JSON.stringify(coords));
+            checkStorageLimit();
             renderList();
-            autoSaveToFolder(); // 自動上書き＆3世代ログ保存を実行
+            autoSaveToFolder();
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            renderList();
+            window.scrollTo({ top: document.getElementById('searchQuery').offsetTop - 20, behavior: 'smooth' });
+        }
+
+        function createCardHtml(c, hasCurrentPos, curX, curZ) {
+            const dimInfo = dimNames[c.dimension];
+            const catInfo = categories[c.category] || categories['other'];
+            const cardColor = c.cardColor || 'none';
+            
+            let convertedText = '';
+            if (c.dimension === 'overworld') {
+                convertedText = `<span class="text-xs text-[#d4abab] ml-2 font-medium">🔀 N: ${Math.round(c.x / 8)}, ${Math.round(c.z / 8)}</span>`;
+            } else if (c.dimension === 'nether') {
+                convertedText = `<span class="text-xs text-[#b3c9b0] ml-2 font-medium">🔀 通常: ${c.x * 8}, ${c.z * 8}</span>`;
+            }
+
+            let distanceBadgeHtml = '';
+            if (!hasCurrentPos) {
+                distanceBadgeHtml = `<button onclick="toggleCurrentInputBox(${c.id})" class="text-xs bg-[#312e2c] hover:bg-[#3d3936] text-[#d4c5b9] px-2 py-0.5 rounded border border-[#3f3a37] transition font-medium">📍 距離を表示</button>`;
+            } else {
+                const dx = c.x - curX;
+                const dz = c.z - curZ;
+                const dist = Math.round(Math.sqrt(dx * dx + dz * dz));
+                distanceBadgeHtml = `<button onclick="toggleCurrentInputBox(${c.id})" class="text-xs bg-[#312e2c] hover:bg-[#3d3936] text-[#a8d0e6] px-2 py-0.5 rounded border border-[#3f3a37] transition font-medium">📏 約${dist}b</button>`;
+            }
+
+            let currentInputBoxHtml = '';
+            if (activeInputCardId === c.id) {
+                currentInputBoxHtml = `
+                    <div class="mt-2 p-2 bg-[#1b1918] rounded border border-[#383431] space-y-1.5">
+                        <div class="flex items-center justify-between"><span class="text-xs text-[#d4c5b9]">現在地を入力 (F3+C貼付可)</span><button onclick="toggleCurrentInputBox(${c.id})" class="text-xs text-[#b8b0a6]">✕</button></div>
+                        <input type="text" placeholder="/tp 100 64 -200" oninput="handleCurrentPaste(event)" class="w-full custom-input rounded px-2 py-0.5 text-xs font-mono mb-1">
+                        <div class="flex items-center gap-1.5 font-mono">
+                            <input type="number" id="inlineCurrentX" value="${hasCurrentPos ? curX : ''}" placeholder="X" class="custom-input w-full px-2 py-0.5 rounded text-xs">
+                            <input type="number" id="inlineCurrentZ" value="${hasCurrentPos ? curZ : ''}" placeholder="Z" class="custom-input w-full px-2 py-0.5 rounded text-xs">
+                            <button onclick="applyCurrentPos(${c.id})" class="custom-btn text-xs font-bold px-3 py-1 rounded">設定</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            let tagsHtml = c.tags && c.tags.length > 0 ? `<div class="flex flex-wrap gap-1 mt-0.5">` + c.tags.map(t => `<span onclick="filterByTag('${escapeHtml(t)}')" class="text-xs bg-[#312e2c] hover:bg-[#3d3936] text-[#d4c5b9] px-1.5 py-0.2 rounded border border-[#3f3a37] cursor-pointer">#${escapeHtml(t)}</span>`).join('') + `</div>` : '';
+            let styleAttr = cardColor !== 'none' ? `style="border-left: 6px solid ${cardColor}; background: linear-gradient(90deg, ${cardColor}18 0%, #262321 30%); border-top: 1px solid #383431; border-right: 1px solid #383431; border-bottom: 1px solid #383431;"` : '';
+
+            return `
+                <div class="custom-card p-2 rounded-lg flex flex-col justify-between gap-1.5 mb-1.5" ${styleAttr}>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5">
+                        <div class="w-full sm:w-auto overflow-hidden">
+                            <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                                <button onclick="toggleFavorite(${c.id}, event)" class="text-sm hover:scale-110 transition">${c.isFavorite ? '⭐' : '☆'}</button>
+                                <span class="font-bold text-base text-[#e6dfd5]">${escapeHtml(c.name)}</span>
+                                <span onclick="filterByCategoryKey('${c.category}')" class="text-xs px-2 py-0.2 rounded border ${catInfo.class} cursor-pointer">${catInfo.icon} ${catInfo.name}</span>
+                                <span class="text-xs px-2 py-0.2 rounded border ${dimInfo.class}">${dimInfo.name}</span>
+                                <span class="text-xs text-[#b8b0a6]/70 ml-1">${formatDateTime(c.createdAt)}</span>
+                            </div>
+                            <div class="text-[#d4c5b9] font-mono text-sm flex flex-wrap items-center gap-y-1">
+                                <span class="font-bold text-[#e6dfd5] text-base">X:${c.x}, Y:${c.y}, Z:${c.z}</span> ${convertedText} <span class="ml-1">${distanceBadgeHtml}</span>
+                            </div>
+                            ${tagsHtml}
+                            ${c.memo ? `<p class="text-[#b8b0a6] text-sm mt-0.5">📝 ${escapeHtml(c.memo)}</p>` : ''}
+                        </div>
+                        <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end shrink-0">
+                            <button onclick="copyCommand(${c.x}, ${c.y}, ${c.z})" class="sub-btn hover:bg-[#3d3936] text-[#e6dfd5] text-xs px-2.5 py-1 rounded">/tp</button>
+                            <button onclick="toggleArchive(${c.id}, event)" class="sub-btn hover:bg-[#3d3936] text-[#d4a037] text-xs px-2.5 py-1 rounded" title="アーカイブ（非表示）にする">📦</button>
+                            <button onclick="editCoord(${c.id})" class="sub-btn hover:bg-[#3d3936] text-[#e6dfd5] text-xs px-2.5 py-1 rounded">編集</button>
+                            <button onclick="deleteCoord(${c.id})" class="bg-[#473636] hover:bg-[#5c4444] text-[#d4abab] text-xs px-2.5 py-1 rounded border border-[#5e4545]">削除</button>
+                        </div>
+                    </div>
+                    ${currentInputBoxHtml}
+                </div>
+            `;
         }
 
         function renderList() {
+            checkStorageLimit();
             const dimFilter = filterDim.value;
             const catFilter = filterCategory.value;
+            const sortVal = sortOrder.value;
             const keyword = searchQuery.value.toLowerCase().trim();
             coordList.innerHTML = '';
 
@@ -843,18 +1016,13 @@
             const curZ = parseFloat(document.getElementById('currentZ').value);
             const hasCurrentPos = !isNaN(curX) && !isNaN(curZ);
 
-            let filtered = coords.filter(c => {
+            let filtered = coords.filter(c => !c.isArchived).filter(c => {
                 const matchDim = (dimFilter === 'all' || c.dimension === dimFilter);
-                
                 let matchCat = true;
-                if (catFilter === 'important') {
-                    matchCat = c.isFavorite;
-                } else if (catFilter !== 'all') {
-                    matchCat = (c.category === catFilter);
-                }
+                if (catFilter === 'important') matchCat = c.isFavorite;
+                else if (catFilter !== 'all') matchCat = (c.category === catFilter);
                 
                 if (!matchDim || !matchCat) return false;
-
                 if (keyword) {
                     const matchName = c.name.toLowerCase().includes(keyword);
                     const matchMemo = c.memo && c.memo.toLowerCase().includes(keyword);
@@ -865,141 +1033,107 @@
             });
 
             filtered.sort((a, b) => {
-                if (a.isFavorite && !b.isFavorite) return -1;
-                if (!a.isFavorite && b.isFavorite) return 1;
+                if (sortVal === 'newest') return b.id - a.id;
+                if (sortVal === 'oldest') return a.id - b.id;
+                if (sortVal === 'name') return a.name.localeCompare(b.name, 'ja');
                 return 0;
             });
 
             if (filtered.length === 0) {
                 coordList.innerHTML = `<div class="text-center text-[#b8b0a6] py-3 custom-card rounded-xl text-sm">該当する場所はありません</div>`;
+                document.getElementById('paginationContainer').classList.add('hidden');
                 return;
             }
 
-            filtered.forEach(c => {
-                const dimInfo = dimNames[c.dimension];
-                const catInfo = categories[c.category] || categories['other'];
-                const cardColor = c.cardColor || 'none';
-                
-                let convertedText = '';
-                if (c.dimension === 'overworld') {
-                    const nx = Math.round(c.x / 8);
-                    const nz = Math.round(c.z / 8);
-                    convertedText = `<span class="text-xs text-[#d4abab] ml-2 font-medium">🔀 N: ${nx}, ${nz}</span>`;
-                } else if (c.dimension === 'nether') {
-                    const ox = c.x * 8;
-                    const oz = c.z * 8;
-                    convertedText = `<span class="text-xs text-[#b3c9b0] ml-2 font-medium">🔀 通常: ${ox}, ${oz}</span>`;
+            const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+            const paginatedItems = filtered.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+            const paginationContainer = document.getElementById('paginationContainer');
+            if (totalPages > 1) {
+                paginationContainer.classList.remove('hidden');
+                document.getElementById('pageInfoText').textContent = `${currentPage} / ${totalPages} ページ (${filtered.length}件)`;
+                document.getElementById('prevPageBtn').disabled = (currentPage === 1);
+                document.getElementById('nextPageBtn').disabled = (currentPage === totalPages);
+            } else {
+                paginationContainer.classList.add('hidden');
+            }
+
+            // カテゴリごとにグループ化して描画
+            const groups = {};
+
+            // 各カテゴリごとのグループ作成（お気に入りが各カテゴリの先頭にくるようにソート）
+            for (const [catKey, catInfo] of Object.entries(categories)) {
+                const catItems = paginatedItems.filter(c => {
+                    const matchCat = (catFilter === 'important') ? (c.category === catKey && c.isFavorite) : (c.category === catKey);
+                    return matchCat;
+                });
+
+                if (catItems.length > 0) {
+                    // 重要マーク（お気に入り）のものをグループ内の先頭に配置するソート
+                    catItems.sort((a, b) => {
+                        if (a.isFavorite && !b.isFavorite) return -1;
+                        if (!a.isFavorite && b.isFavorite) return 1;
+                        return 0;
+                    });
+                    // すべてのカテゴリを「閉じた状態 (isOpen: false)」にする
+                    groups[catKey] = { name: catInfo.name, icon: catInfo.icon, items: catItems, isOpen: false };
                 }
+            }
 
-                let distanceBadgeHtml = '';
-                if (!hasCurrentPos) {
-                    distanceBadgeHtml = `<button onclick="toggleCurrentInputBox(${c.id})" class="text-xs bg-[#312e2c] hover:bg-[#3d3936] text-[#d4c5b9] px-2 py-0.5 rounded border border-[#3f3a37] flex items-center gap-1 transition font-medium">📍 現在地を設定して距離を表示</button>`;
-                } else {
-                    const dx = c.x - curX;
-                    const dz = c.z - curZ;
-                    const dist = Math.round(Math.sqrt(dx * dx + dz * dz));
-                    
-                    let dirStr = '';
-                    const xDir = dx > 0 ? '東へ' : '西へ';
-                    const zDir = dz > 0 ? '南へ' : '北へ';
-                    dirStr = `（${Math.abs(dx)}b ${xDir} / ${Math.abs(dz)}b ${zDir}）`;
-
-                    distanceBadgeHtml = `<button onclick="toggleCurrentInputBox(${c.id})" class="text-xs bg-[#312e2c] hover:bg-[#3d3936] text-[#a8d0e6] px-2 py-0.5 rounded border border-[#3f3a37] flex items-center gap-1 transition font-medium" title="クリックして現在地を入力し直す">📏 距離: 約${dist}b ${dirStr}</button>`;
-                }
-
-                let currentInputBoxHtml = '';
-                if (activeInputCardId === c.id) {
-                    currentInputBoxHtml = `
-                        <div class="mt-2 p-2 bg-[#1b1918] rounded border border-[#383431] space-y-1.5 animate-fadeIn">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-medium text-[#d4c5b9]">📍 現在地の座標を入力</span>
-                                <button onclick="toggleCurrentInputBox(${c.id})" class="text-xs text-[#b8b0a6] hover:text-[#e6dfd5]">✕ 閉じる</button>
-                            </div>
-                            <div class="text-[11px] text-[#b8b0a6]">F3+Cのコピーを貼るか、X/Zを直接入力してください</div>
-                            <input type="text" placeholder="例: /tp 100 64 -200 (F3+C)" oninput="handleCurrentPaste(event)" 
-                                class="w-full custom-input rounded px-2 py-0.5 text-xs font-mono mb-1">
-                            <div class="flex items-center gap-1.5 font-mono">
-                                <div class="flex items-center gap-1 flex-1">
-                                    <span class="text-xs text-[#b8b0a6]">X:</span>
-                                    <input type="number" id="inlineCurrentX" value="${hasCurrentPos ? curX : ''}" placeholder="X" class="custom-input w-full px-2 py-0.5 rounded text-xs font-semibold">
-                                </div>
-                                <div class="flex items-center gap-1 flex-1">
-                                    <span class="text-xs text-[#b8b0a6]">Z:</span>
-                                    <input type="number" id="inlineCurrentZ" value="${hasCurrentPos ? curZ : ''}" placeholder="Z" class="custom-input w-full px-2 py-0.5 rounded text-xs font-semibold">
-                                </div>
-                                <button onclick="applyCurrentPos(${c.id})" class="custom-btn text-xs font-bold px-3 py-1 rounded shrink-0">設定</button>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                const timeText = c.createdAt ? `<span class="text-xs text-[#b8b0a6]/70 ml-2">${formatDateTime(c.createdAt)}</span>` : '';
-                const favIcon = c.isFavorite ? '⭐' : '☆';
-                const favTitle = c.isFavorite ? 'お気に入り解除' : 'お気に入り登録';
-
-                let tagsHtml = '';
-                if (c.tags && c.tags.length > 0) {
-                    tagsHtml = `<div class="flex flex-wrap gap-1 mt-0.5">` + 
-                        c.tags.map(t => `<span onclick="filterByTag('${escapeHtml(t)}')" class="text-xs bg-[#312e2c] hover:bg-[#3d3936] text-[#d4c5b9] px-1.5 py-0.2 rounded border border-[#3f3a37] cursor-pointer transition" title="クリックしてこのタグで絞り込み">#${escapeHtml(t)}</span>`).join('') + 
-                        `</div>`;
-                }
-
-                const card = document.createElement('div');
-                card.className = `custom-card p-1.5 rounded-lg flex flex-col justify-between gap-1.5`;
-                if (cardColor !== 'none') {
-                    card.setAttribute('style', `border-left: 6px solid ${cardColor}; background: linear-gradient(90deg, ${cardColor}18 0%, #262321 30%); border-top: 1px solid #383431; border-right: 1px solid #383431; border-bottom: 1px solid #383431;`);
-                }
-
-                card.innerHTML = `
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5">
-                        <div class="w-full sm:w-auto overflow-hidden">
-                            <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                                <button onclick="toggleFavorite(${c.id}, event)" class="text-sm hover:scale-110 transition" title="${favTitle}">${favIcon}</button>
-                                <span class="font-bold text-base text-[#e6dfd5]">${escapeHtml(c.name)}</span>
-                                <span onclick="filterByCategoryKey('${c.category}')" class="text-xs px-2 py-0.2 rounded border ${catInfo.class} cursor-pointer hover:opacity-80 transition" title="クリックしてこのカテゴリで絞り込み">${catInfo.icon} ${catInfo.name}</span>
-                                <span class="text-xs px-2 py-0.2 rounded border ${dimInfo.class}">${dimInfo.name}</span>
-                                ${timeText}
-                            </div>
-                            <div class="text-[#d4c5b9] font-mono text-sm flex flex-wrap items-center gap-y-1">
-                                <span class="font-bold text-[#e6dfd5] text-base">X:${c.x}, Y:${c.y}, Z:${c.z}</span> 
-                                ${convertedText} 
-                                <span class="ml-1">${distanceBadgeHtml}</span>
-                            </div>
-                            ${tagsHtml}
-                            ${c.memo ? `<p class="text-[#b8b0a6] text-sm mt-0.5">📝 ${escapeHtml(c.memo)}</p>` : ''}
-                        </div>
-                        <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end shrink-0">
-                            <button onclick="copyCommand(${c.x}, ${c.y}, ${c.z})" class="bg-[#3b443c] hover:bg-[#485449] text-[#e6dfd5] text-xs md:text-sm px-2.5 py-1 rounded transition font-medium">
-                                /tpコピー
-                            </button>
-                            <button onclick="editCoord(${c.id})" class="bg-[#423d38] hover:bg-[#57504a] text-[#e6dfd5] text-xs md:text-sm px-2.5 py-1 rounded transition font-medium">
-                                編集
-                            </button>
-                            <button onclick="deleteCoord(${c.id})" class="bg-[#473636] hover:bg-[#5c4444] text-[#d4abab] text-xs md:text-sm px-2.5 py-1 rounded transition border border-[#5e4545] font-medium">
-                                削除
-                            </button>
-                        </div>
-                    </div>
-                    ${currentInputBoxHtml}
-                `;
-                coordList.appendChild(card);
+            // その他グループ
+            const categorizedIds = new Set();
+            Object.values(groups).forEach(g => g.items.forEach(item => categorizedIds.add(item.id)));
+            const uncategorizedItems = paginatedItems.filter(c => {
+                if (categorizedIds.has(c.id)) return false;
+                if (catFilter === 'important' && !c.isFavorite) return false;
+                return true;
             });
+
+            if (uncategorizedItems.length > 0) {
+                uncategorizedItems.sort((a, b) => {
+                    if (a.isFavorite && !b.isFavorite) return -1;
+                    if (!a.isFavorite && b.isFavorite) return 1;
+                    return 0;
+                });
+                groups['other_group'] = { name: 'その他', icon: '🔖', items: uncategorizedItems, isOpen: false };
+            }
+
+            let html = '';
+            for (const [gKey, group] of Object.entries(groups)) {
+                const openAttr = group.isOpen ? 'open' : '';
+                html += `
+                    <details class="custom-card rounded-xl overflow-hidden mb-2 border border-[#383431]" ${openAttr}>
+                        <summary class="cursor-pointer px-3 py-2 text-xs font-bold text-[#d4c5b9] flex items-center justify-between select-none hover:bg-[#312e2c] transition">
+                            <span class="flex items-center gap-1.5 text-sm">
+                                <span>${group.icon}</span> 
+                                <span>${escapeHtml(group.name)}</span> 
+                                <span class="text-xs text-[#b8b0a6] font-mono">(${group.items.length}件)</span>
+                            </span>
+                            <span class="text-xs text-[#b8b0a6] group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-2 pt-1 space-y-1.5 border-t border-[#383431]/60 bg-[#1b1918]/30">
+                `;
+                group.items.forEach(c => {
+                    html += createCardHtml(c, hasCurrentPos, curX, curZ);
+                });
+                html += `
+                        </div>
+                    </details>
+                `;
+            }
+
+            coordList.innerHTML = html;
         }
 
         function escapeHtml(str) {
             return str.replace(/[&'`"<>]/g, function(match) {
-                return {
-                    '&': '&amp;',
-                    "'": '&#x27;',
-                    '`': '&#x60;',
-                    '"': '&quot;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                }[match];
+                return { '&': '&amp;', "'": '&#x27;', '`': '&#x60;', '"': '&quot;', '<': '&lt;', '>': '&gt;' }[match];
             });
         }
-
-        renderList();
     </script>
 </body>
 </html>
