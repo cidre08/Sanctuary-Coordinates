@@ -84,10 +84,12 @@
                 <p><strong class="text-[#e6dfd5]">⛏️ 鉱石の適正高度(Java版):</strong> ダイヤ <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-58</code> / 鉄 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">16</code> / 銅 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">48</code> / 石炭 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">96</code> や金 <code class="bg-[#1b1918] px-1.5 py-0.5 rounded text-[#e6dfd5]">-16</code></p>
             </div>
             
-            <!-- データ管理 & URL共有エリア -->
+            <!-- データ管理 & カテゴリ管理 & URL共有エリア -->
             <div class="pt-2 border-t border-[#383431] flex flex-col gap-2">
                 <div class="flex items-center justify-between">
-                    <span class="text-[11px] text-[#b8b0a6]">データ管理・URL共有</span>
+                    <button onclick="openCategoryManager()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1 text-[#d4c5b9]">
+                        <span>🏷️</span> カスタムカテゴリ管理
+                    </button>
                     <button onclick="exportShareUrl()" class="sub-btn text-xs px-2.5 py-1 rounded shadow-sm font-medium flex items-center gap-1 text-[#a8d0e6]">
                         <span>🔗</span> 共有用URLを作成
                     </button>
@@ -269,6 +271,23 @@
         </div>
     </div>
 
+    <!-- カスタムカテゴリ管理モーダル -->
+    <div id="categoryManagerModal" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3">
+        <div class="custom-card p-4 rounded-xl shadow-2xl max-w-md w-full space-y-3 border border-[#383431]">
+            <div class="flex justify-between items-center pb-2 border-b border-[#383431]">
+                <span class="font-bold text-sm text-[#e6dfd5]">🏷️ カスタムカテゴリ管理</span>
+                <button onclick="closeCategoryManager()" class="text-[#b8b0a6] hover:text-[#e6dfd5] text-sm">✕</button>
+            </div>
+            <p class="text-xs text-[#b8b0a6]">自分で追加したカテゴリの編集や削除が行えます。</p>
+            <div id="customCategoryList" class="space-y-2 max-h-60 overflow-y-auto text-xs">
+                <!-- JSで動的生成 -->
+            </div>
+            <div class="flex justify-end pt-2 border-t border-[#383431]">
+                <button onclick="closeCategoryManager()" class="sub-btn py-1.5 px-4 rounded text-xs font-medium">閉じる</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let coords = JSON.parse(localStorage.getItem('minecraft_coords_v9')) || [];
         let editingId = null;
@@ -286,7 +305,6 @@
             other: { name: 'その他', icon: '🔖', class: 'bg-[#2e2e2e] text-[#cccccc] border-[#424242]' }
         };
 
-        // カスタムカテゴリの読み込み（保存されていれば結合）
         let customCategories = JSON.parse(localStorage.getItem('minecraft_custom_categories_v9')) || {};
         let categories = { ...defaultCategories, ...customCategories };
 
@@ -303,6 +321,8 @@
         const colorPreview = document.getElementById('colorPickerPreview');
         const helpPanel = document.getElementById('helpPanel');
         const addCategoryModal = document.getElementById('addCategoryModal');
+        const categoryManagerModal = document.getElementById('categoryManagerModal');
+        const customCategoryList = document.getElementById('customCategoryList');
 
         const dimNames = {
             overworld: { name: 'オーバーワールド', short: '通常', class: 'bg-[#2b332b] text-[#b3c9b0] border-[#3d4d3c]' },
@@ -310,7 +330,6 @@
             end: { name: 'ジ・エンド', short: 'エンド', class: 'bg-[#312b3b] text-[#c7b5d9] border-[#40384d]' }
         };
 
-        // カテゴリのセレクトボックスを更新
         function updateCategorySelects() {
             const categorySelect = document.getElementById('category');
             const currentVal = categorySelect.value;
@@ -325,7 +344,6 @@
                 categorySelect.value = currentVal;
             }
 
-            // フィルター用セレクトボックス
             const currentFilterVal = filterCategory.value;
             let filterHtml = `<option value="all">すべてのカテゴリ</option><option value="important">⭐ 重要</option>`;
             for (const [key, cat] of Object.entries(categories)) {
@@ -339,7 +357,7 @@
 
         function handleCategoryChange(e) {
             if (e.target.value === 'add_new') {
-                e.target.value = 'other'; // 一旦戻す
+                e.target.value = 'other';
                 openAddCategoryModal();
             }
         }
@@ -380,21 +398,97 @@
             closeAddCategoryModal();
         }
 
-        // タグをクリックしたときに検索窓にセットして絞り込み
+        // --- カテゴリ管理機能 ---
+        function openCategoryManager() {
+            renderCustomCategoryList();
+            categoryManagerModal.classList.remove('hidden');
+        }
+
+        function closeCategoryManager() {
+            categoryManagerModal.classList.add('hidden');
+            renderList();
+        }
+
+        function renderCustomCategoryList() {
+            const customKeys = Object.keys(customCategories);
+            if (customKeys.length === 0) {
+                customCategoryList.innerHTML = `<div class="text-center text-[#b8b0a6] py-3">カスタムカテゴリはまだありません</div>`;
+                return;
+            }
+
+            let html = '';
+            for (const key of customKeys) {
+                const cat = customCategories[key];
+                html += `
+                    <div class="flex items-center justify-between p-2 bg-[#1b1918] rounded border border-[#383431]">
+                        <div class="flex items-center gap-2">
+                            <span class="text-base">${cat.icon}</span>
+                            <span class="font-bold text-[#e6dfd5]">${escapeHtml(cat.name)}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="editCustomCategory('${key}')" class="sub-btn text-[11px] px-2 py-0.5 rounded">編集</button>
+                            <button onclick="deleteCustomCategory('${key}')" class="bg-[#473636] hover:bg-[#5c4444] text-[#d4abab] text-[11px] px-2 py-0.5 rounded border border-[#5e4545]">削除</button>
+                        </div>
+                    </div>
+                `;
+            }
+            customCategoryList.innerHTML = html;
+        }
+
+        function editCustomCategory(key) {
+            const cat = customCategories[key];
+            const newName = prompt('新しいカテゴリ名を入力してください:', cat.name);
+            if (newName === null) return;
+            const trimmedName = newName.trim();
+            if (!trimmedName) {
+                alert('カテゴリ名が空のため変更されませんでした。');
+                return;
+            }
+            const newIcon = prompt('新しいアイコン絵文字(1文字)を入力してください:', cat.icon);
+            if (newIcon === null) return;
+
+            customCategories[key].name = trimmedName;
+            customCategories[key].icon = newIcon.trim() || '🏷️';
+            categories[key] = customCategories[key];
+
+            localStorage.setItem('minecraft_custom_categories_v9', JSON.stringify(customCategories));
+            updateCategorySelects();
+            renderCustomCategoryList();
+        }
+
+        function deleteCustomCategory(key) {
+            const cat = customCategories[key];
+            if (confirm(`「${cat.name}」を削除してもよろしいですか？\n※このカテゴリを設定していた場所は「その他」に移動します。`)) {
+                // このカテゴリを使っている座標を 'other' に変更
+                coords = coords.map(c => {
+                    if (c.category === key) {
+                        return { ...c, category: 'other' };
+                    }
+                    return c;
+                });
+                localStorage.setItem('minecraft_coords_v9', JSON.stringify(coords));
+
+                delete customCategories[key];
+                delete categories[key];
+                localStorage.setItem('minecraft_custom_categories_v9', JSON.stringify(customCategories));
+
+                updateCategorySelects();
+                renderCustomCategoryList();
+            }
+        }
+
         function filterByTag(tag) {
             searchQuery.value = tag;
             renderList();
             window.scrollTo({ top: document.getElementById('searchQuery').offsetTop - 20, behavior: 'smooth' });
         }
 
-        // カテゴリバッジをクリックしたときにフィルターを変更して絞り込み
         function filterByCategoryKey(catKey) {
             filterCategory.value = catKey;
             renderList();
             window.scrollTo({ top: document.getElementById('searchQuery').offsetTop - 20, behavior: 'smooth' });
         }
 
-        // ページ読み込み時にURLハッシュから共有データを自動インポート & セレクト初期化
         window.addEventListener('DOMContentLoaded', () => {
             updateCategorySelects();
 
@@ -680,7 +774,6 @@
                 return true;
             });
 
-            // お気に入りが常に上に来るようにソート
             filtered.sort((a, b) => {
                 if (a.isFavorite && !b.isFavorite) return -1;
                 if (!a.isFavorite && b.isFavorite) return 1;
