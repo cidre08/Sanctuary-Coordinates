@@ -671,7 +671,7 @@
                     <div class="flex items-center justify-between p-2 bg-[#1b1918] rounded border border-[#383431]">
                         <div>
                             <div class="font-bold text-[#e6dfd5]">${escapeHtml(c.name)} <span class="font-mono text-xs text-[#b8b0a6]">(X:${c.x}, Z:${c.z})</span></div>
-                            <div class="text-[11px] text-[#b8b0a6]">追加日: ${formatDateTime(c.createdAt)}</div>
+                            <div class="text-[11px] text-[#b8b0a6]">追加日時: ${formatDateTime(c.createdAt)}</div>
                         </div>
                         <div class="flex items-center gap-1">
                             <button onclick="toggleArchive(${c.id}, event); renderArchiveList();" class="sub-btn text-xs px-2.5 py-1 rounded text-[#a8d0e6]">復元</button>
@@ -756,7 +756,12 @@
         function formatDateTime(isoString) {
             if (!isoString) return '';
             const date = new Date(isoString);
-            return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}/${month}/${day} ${hours}:${minutes}`;
         }
 
         pasteInput.addEventListener('input', (e) => {
@@ -984,7 +989,7 @@
                                 <span class="font-bold text-base text-[#e6dfd5]">${escapeHtml(c.name)}</span>
                                 <span onclick="filterByCategoryKey('${c.category}')" class="text-xs px-2 py-0.2 rounded border ${catInfo.class} cursor-pointer">${catInfo.icon} ${catInfo.name}</span>
                                 <span class="text-xs px-2 py-0.2 rounded border ${dimInfo.class}">${dimInfo.name}</span>
-                                <span class="text-xs text-[#b8b0a6]/70 ml-1">${formatDateTime(c.createdAt)}</span>
+                                <span class="text-xs text-[#b8b0a6]/70 ml-1 font-mono">${formatDateTime(c.createdAt)}</span>
                             </div>
                             <div class="text-[#d4c5b9] font-mono text-sm flex flex-wrap items-center gap-y-1">
                                 <span class="font-bold text-[#e6dfd5] text-base">X:${c.x}, Y:${c.y}, Z:${c.z}</span> ${convertedText} <span class="ml-1">${distanceBadgeHtml}</span>
@@ -1073,13 +1078,11 @@
                 });
 
                 if (catItems.length > 0) {
-                    // 重要マーク（お気に入り）のものをグループ内の先頭に配置するソート
                     catItems.sort((a, b) => {
                         if (a.isFavorite && !b.isFavorite) return -1;
                         if (!a.isFavorite && b.isFavorite) return 1;
                         return 0;
                     });
-                    // すべてのカテゴリを「閉じた状態 (isOpen: false)」にする
                     groups[catKey] = { name: catInfo.name, icon: catInfo.icon, items: catItems, isOpen: false };
                 }
             }
